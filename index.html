@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Fuerza Aérea</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a356e;
+            --secondary: #b31942;
+            --accent: #5d8aa8;
+            --light: #f4f4f4;
+            --dark: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a356e 0%, #0d1b3d 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Login */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+        }
+        
+        .login-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 20px;
+        }
+        
+        .logo i {
+            font-size: 60px;
+            color: var(--primary);
+        }
+        
+        .logo h1 {
+            color: var(--primary);
+            margin-top: 10px;
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, var(--accent), #7fa0b8);
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, var(--success), #34ce57);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(to right, var(--danger), #e4606d);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(to right, var(--warning), #ffd761);
+        }
+        
+        .user-hint {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .user-hint h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .user-hint ul {
+            list-style-type: none;
+            padding-left: 5px;
+        }
+        
+        .user-hint li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .user-hint li:before {
+            content: "•";
+            color: var(--secondary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        /* Dashboard */
+        .dashboard {
+            display: none;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 24px;
+        }
+        
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .menu-btn {
+            padding: 25px;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--primary) 0%, #2a4a8f 100%);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .menu-btn i {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, var(--secondary) 0%, #d12c5c 100%);
+        }
+        
+        /* Content Sections */
+        .content-section {
+            display: none;
+            padding: 20px;
+        }
+        
+        .section-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        /* Aircraft Grid */
+        .aircraft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .aircraft-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .aircraft-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .aircraft-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            color: var(--accent);
+        }
+        
+        .aircraft-info {
+            padding: 15px;
+        }
+        
+        .aircraft-info h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        /* Forms */
+        .form-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-field {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .form-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-field input, 
+        .form-field select, 
+        .form-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .data-table th, 
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        /* Personnel List */
+        .personnel-list {
+            margin-top: 20px;
+        }
+        
+        .personnel-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .personnel-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .personnel-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 20px;
+            font-size: 36px;
+            color: white;
+        }
+        
+        .personnel-info {
+            flex: 1;
+        }
+        
+        .personnel-info h3 {
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        
+        .personnel-info p {
+            margin-bottom: 3px;
+            color: var(--dark);
+        }
+        
+        .personnel-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .rank-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .archived {
+            opacity: 0.6;
+            background-color: #f0f0f0;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .badge-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: var(--warning);
+            color: black;
+        }
+        
+        .badge-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .badge-info {
+            background-color: var(--info);
+            color: white;
+        }
+        
+        .badge-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        /* Request status */
+        .request-taken {
+            background-color: #e9f5e9;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid var(--success);
+        }
+        
+        .certified-status {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-menu {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .personnel-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .personnel-avatar {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .personnel-actions {
+                margin-top: 15px;
+                justify-content: center;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-field {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de Login -->
+        <div class="login-container" id="loginScreen">
+            <div class="login-form">
+                <div class="logo">
+                    <i class="fas fa-plane"></i>
+                    <h1>FUERZA AÉREA</h1>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" placeholder="Ingrese su usuario">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingrese su contraseña">
+                </div>
+                
+                <button type="button" onclick="login()">Iniciar Sesión</button>
+                
+                <div class="user-hint">
+                    <h3>Usuarios de Prueba:</h3>
+                    <ul>
+                        <li><strong>Piloto:</strong> usuario: piloto1 / contraseña: piloto123</li>
+                        <li><strong>Instructor:</strong> usuario: instructor1 / contraseña: instructor123</li>
+                        <li><strong>Administrador:</strong> usuario: admin / contraseña: admin123</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Principal -->
+        <div class="dashboard" id="dashboard">
+            <header class="dashboard-header">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h2 id="userName">Usuario</h2>
+                        <p id="userRole">Rol</p>
+                    </div>
+                </div>
+                <button onclick="logout()">Cerrar Sesión</button>
+            </header>
+
+            <div class="main-menu">
+                <div class="menu-btn" onclick="showSection('aircraftSection')">
+                    <i class="fas fa-fighter-jet"></i>
+                    <span>Aeronaves</span>
+                </div>
+                
+                <div class="menu-btn" onclick="showSection('certificationSection')">
+                    <i class="fas fa-file-certificate"></i>
+                    <span>Certificaciones</span>
+                </div>
+                
+                <div class="menu-btn" onclick="showSection('flightLogSection')">
+                    <i class="fas fa-book"></i>
+                    <span>Libros de Vuelo</span>
+                </div>
+                
+                <div class="menu-btn instructor-only" onclick="showSection('requestsSection')">
+                    <i class="fas fa-tasks"></i>
+                    <span>Solicitudes</span>
+                </div>
+                
+                <div class="menu-btn admin-only" onclick="showSection('personnelSection')">
+                    <i class="fas fa-users"></i>
+                    <span>Personal</span>
+                </div>
+                
+                <div class="menu-btn admin-only" onclick="showSection('managementSection')">
+                    <i class="fas fa-cogs"></i>
+                    <span>Administración</span>
+                </div>
+            </div>
+
+            <!-- Sección de Aeronaves -->
+            <div id="aircraftSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-fighter-jet"></i> Aeronaves Disponibles</h2>
+                </div>
+                
+                <div class="aircraft-grid" id="aircraftList">
+                    <!-- Las aeronaves se cargarán dinámicamente -->
+                </div>
+                
+                <div class="admin-only" id="adminAircraftControls" style="margin-top: 30px; display: none;">
+                    <h3>Gestión de Aeronaves</h3>
+                    <button onclick="showAddAircraftForm()" class="btn-success">
+                        <i class="fas fa-plus"></i> Agregar Nueva Aeronave
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sección de Certificaciones -->
+            <div id="certificationSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-file-certificate"></i> Solicitudes de Certificación</h2>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Nueva Solicitud de Certificación</h3>
+                    <form id="certificationForm">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="certAircraft">Aeronave</label>
+                                <select id="certAircraft" required>
+                                    <option value="">Seleccione una aeronave</option>
+                                    <!-- Las opciones se llenarán dinámicamente -->
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="availability">Disponibilidad</label>
+                                <input type="text" id="availability" required placeholder="Disponibilidad para la certificación">
+                            </div>
+                        </div>
+                        <button type="button" onclick="submitCertificationRequest()">Enviar Solicitud</button>
+                    </form>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>Mis Solicitudes de Certificación</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Aeronave</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myCertificationsTable">
+                            <!-- Las solicitudes se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de Libros de Vuelo -->
+            <div id="flightLogSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-book"></i> Libros de Vuelo</h2>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Nuevo Registro de Vuelo</h3>
+                    <form id="flightLogForm">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="logAircraft">Aeronave</label>
+                                <select id="logAircraft" required>
+                                    <option value="">Seleccione una aeronave</option>
+                                    <!-- Las opciones se llenarán dinámicamente -->
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="departure">Fecha y Hora de Despegue (UTC)</label>
+                                <input type="datetime-local" id="departure" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="arrival">Fecha y Hora de Aterrizaje (UTC)</label>
+                                <input type="datetime-local" id="arrival" required onchange="calculateFlightTime()">
+                            </div>
+                            <div class="form-field">
+                                <label for="flightTime">Tiempo de Vuelo (TOF)</label>
+                                <input type="text" id="flightTime" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="route">Ruta (RTE)</label>
+                                <input type="text" id="route" required placeholder="Ruta de vuelo">
+                            </div>
+                            <div class="form-field">
+                                <label for="purpose">Motivo</label>
+                                <input type="text" id="purpose" required placeholder="Motivo del vuelo">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="remarks">Observaciones (RMK)</label>
+                                <textarea id="remarks" placeholder="Observaciones (opcional)">N/A</textarea>
+                            </div>
+                        </div>
+                        
+                        <button type="button" onclick="submitFlightLog()">Registrar Vuelo</button>
+                    </form>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>Historial de Vuelos</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Aeronave</th>
+                                <th>Despegue</th>
+                                <th>Aterrizaje</th>
+                                <th>Tiempo</th>
+                                <th>Ruta</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flightLogsTable">
+                            <!-- Los registros se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Sección de Solicitudes (para instructores) -->
+            <div id="requestsSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks"></i> Solicitudes de Certificación Pendientes</h2>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Piloto</th>
+                            <th>Aeronave</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTable">
+                        <!-- Las solicitudes se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Sección de Personal -->
+            <div id="personnelSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Gestión de Personal</h2>
+                </div>
+                
+                <div class="admin-controls" style="margin-bottom: 20px;">
+                    <button class="btn-success" onclick="showAddPersonnelForm()">
+                        <i class="fas fa-plus"></i> Agregar Nuevo Personal
+                    </button>
+                    <button class="btn-secondary" onclick="toggleViewArchived()" style="margin-left: 10px;">
+                        <i class="fas fa-archive"></i> Ver Archivados
+                    </button>
+                </div>
+                
+                <div class="personnel-list" id="personnelList">
+                    <!-- Lista de personal activo -->
+                    <h3>Personal Activo</h3>
+                    <div id="activePersonnelList">
+                        <!-- Personal activo se cargará aquí -->
+                    </div>
+                    
+                    <!-- Lista de personal archivado (inicialmente oculta) -->
+                    <h3 id="archivedTitle" style="display: none; margin-top: 30px;">Personal Archivado</h3>
+                    <div id="archivedPersonnelList" style="display: none;">
+                        <!-- Personal archivado se cargará aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Administración -->
+            <div id="managementSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-cogs"></i> Panel de Administración</h2>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Gestión del Sistema</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <button class="btn-success" onclick="showAddAircraftForm()" style="width: 100%;">
+                                <i class="fas fa-plus"></i> Agregar Nueva Aeronave
+                            </button>
+                        </div>
+                        <div class="form-field">
+                            <button class="btn-secondary" onclick="showAddPersonnelForm()" style="width: 100%;">
+                                <i class="fas fa-user-plus"></i> Agregar Nuevo Personal
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <button class="btn-warning" onclick="manageAircraft()" style="width: 100%;">
+                                <i class="fas fa-plane"></i> Gestionar Aeronaves
+                            </button>
+                        </div>
+                        <div class="form-field">
+                            <button class="btn-info" onclick="managePersonnel()" style="width: 100%; background: linear-gradient(to right, var(--info), #39c0d6);">
+                                <i class="fas fa-users-cog"></i> Gestionar Personal
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <button class="btn-primary" onclick="viewSystemStats()" style="width: 100%;">
+                                <i class="fas fa-chart-bar"></i> Ver Estadísticas del Sistema
+                            </button>
+                        </div>
+                        <div class="form-field">
+                            <button class="btn-danger" onclick="resetSystem()" style="width: 100%;">
+                                <i class="fas fa-trash"></i> Restablecer Sistema
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal para Detalles de Aeronave -->
+            <div class="modal" id="aircraftModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="modalAircraftName">Nombre de Aeronave</h2>
+                        <button class="close-btn" onclick="closeModal('aircraftModal')">&times;</button>
+                    </div>
+                    <div class="aircraft-img" id="modalAircraftImg">
+                        <i class="fas fa-plane"></i>
+                    </div>
+                    <p id="modalAircraftDescription" style="margin: 15px 0;">Descripción de la aeronave.</p>
+                    <div id="modalAircraftActions">
+                        <button onclick="requestCertification()">Solicitar Certificación</button>
+                        <div class="admin-only" style="margin-top: 10px; display: none;">
+                            <button class="btn-secondary" onclick="editAircraft()">Modificar Aeronave</button>
+                            <button class="btn-danger" onclick="archiveAircraft()">Archivar Aeronave</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal para Detalles de Solicitud -->
+            <div class="modal" id="requestDetailModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Detalles de Solicitud</h2>
+                        <button class="close-btn" onclick="closeModal('requestDetailModal')">&times;</button>
+                    </div>
+                    
+                    <div id="requestDetailContent">
+                        <!-- Los detalles de la solicitud se cargarán dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal para Certificar -->
+            <div class="modal" id="certifyModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Certificar Solicitud</h2>
+                        <button class="close-btn" onclick="closeModal('certifyModal')">&times;</button>
+                    </div>
+                    
+                    <div class="form-container">
+                        <div id="certifyRequestInfo"></div>
+                        
+                        <div class="form-field">
+                            <label for="observations">Observaciones (RMK)</label>
+                            <textarea id="observations" rows="4" placeholder="Ingrese observaciones (opcional)">N/A</textarea>
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                            <button class="btn-secondary" onclick="skipObservations()">Omitir</button>
+                            <button class="btn-success" onclick="submitCertification()">Enviar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de usuarios
+        const users = [
+            { 
+                username: "piloto1", 
+                password: "piloto123", 
+                role: "Piloto", 
+                name: "Teniente García",
+                rank: "Teniente Primero",
+                nuim: "45-123456",
+                certifiedAircraft: [1, 3],
+                status: "active"
+            },
+            { 
+                username: "piloto2", 
+                password: "piloto123", 
+                role: "Piloto", 
+                name: "Capitán Rodríguez",
+                rank: "Capitán",
+                nuim: "38-654321",
+                certifiedAircraft: [1, 2, 3],
+                status: "active"
+            },
+            { 
+                username: "instructor1", 
+                password: "instructor123", 
+                role: "Instructor", 
+                name: "Comandante Méndez",
+                rank: "Comandante",
+                nuim: "29-987654",
+                certifiedAircraft: [1, 2, 3, 4, 5],
+                status: "active"
+            },
+            { 
+                username: "instructor2", 
+                password: "instructor123", 
+                role: "Instructor", 
+                name: "Mayor Silva",
+                rank: "Mayor",
+                nuim: "33-456789",
+                certifiedAircraft: [1, 2, 3, 4],
+                status: "active"
+            },
+            { 
+                username: "admin", 
+                password: "admin123", 
+                role: "Administrador", 
+                name: "Coronel Vargas",
+                rank: "Coronel",
+                nuim: "19-135790",
+                certifiedAircraft: [1, 2, 3, 4, 5, 6],
+                status: "active"
+            }
+        ];
+
+        // Datos de aeronaves
+        const aircraftData = [
+            { 
+                id: 1, 
+                name: "Vellum", 
+                description: "Aeronave de entrenamiento básico. Ideal para nuevos pilotos.", 
+                image: "placeholder.png",
+                status: "active"
+            },
+            { 
+                id: 2, 
+                name: "Texan", 
+                description: "Aeronave de entrenamiento avanzado. Utilizada para formación de pilotos.", 
+                image: "placeholder.png",
+                status: "active"
+            },
+            { 
+                id: 3, 
+                name: "Titan", 
+                description: "Aeronave de transporte de carga y personal. Gran capacidad.", 
+                image: "placeholder.png",
+                status: "active"
+            },
+            { 
+                id: 4, 
+                name: "Miljet", 
+                description: "Jet militar de alto rendimiento. Utilizado para misiones de intercepción.", 
+                image: "placeholder.png",
+                status: "active"
+            },
+            { 
+                id: 5, 
+                name: "Laser", 
+                description: "Aeronave de combate ágil. Diseñada para superioridad aérea.", 
+                image: "placeholder.png",
+                status: "active"
+            },
+            { 
+                id: 6, 
+                name: "Pyro", 
+                description: "Aeronave de ataque a tierra. Especializada en apoyo cercano.", 
+                image: "placeholder.png",
+                status: "active"
+            }
+        ];
+
+        // Datos de certificaciones
+        let certificationRequests = [
+            {
+                id: 1,
+                pilot: "Teniente García",
+                pilotId: "piloto1",
+                aircraft: "Vellum",
+                aircraftId: 1,
+                date: "2023-05-15",
+                status: "pendiente",
+                availability: "Disponible los fines de semana",
+                takenBy: null,
+                certified: false
+            },
+            {
+                id: 2,
+                pilot: "Capitán Rodríguez",
+                pilotId: "piloto2",
+                aircraft: "Texan",
+                aircraftId: 2,
+                date: "2023-05-16",
+                status: "aprobada",
+                availability: "Disponible en las mañanas",
+                takenBy: "instructor1",
+                certified: true,
+                certifiedBy: "Comandante Méndez",
+                certifiedDate: "2023-05-17",
+                observations: "N/A"
+            },
+            {
+                id: 3,
+                pilot: "Teniente García",
+                pilotId: "piloto1",
+                aircraft: "Miljet",
+                aircraftId: 4,
+                date: "2023-05-18",
+                status: "tomada",
+                availability: "Disponible después del mediodía",
+                takenBy: "instructor2",
+                certified: false
+            }
+        ];
+
+        // Datos de personal de ejemplo
+        const personnelData = [
+            {
+                id: 1,
+                name: "David Toro",
+                rank: "MAYOR",
+                rankCode: "O-4",
+                nuim: "12-345678",
+                bloodType: "O+",
+                nationality: "Colombiano",
+                squadron: "41",
+                status: "active"
+            },
+            {
+                id: 2,
+                name: "Alejandro Corlene",
+                rank: "BRIGADIER GENERAL",
+                rankCode: "O-7",
+                nuim: "23-456789",
+                bloodType: "A+",
+                nationality: "Chileno",
+                squadron: "21",
+                status: "active"
+            },
+            {
+                id: 3,
+                name: "Kevin Ruales",
+                rank: "CAPITAN",
+                rankCode: "O-3",
+                nuim: "34-567890",
+                bloodType: "B+",
+                nationality: "Ecuatoriano",
+                squadron: "41",
+                status: "active"
+            },
+            {
+                id: 4,
+                name: "Stefano Alvarez",
+                rank: "TENIENTE PRIMERO",
+                rankCode: "O-2",
+                nuim: "45-678901",
+                bloodType: "AB+",
+                nationality: "Peruano",
+                squadron: "21",
+                status: "active"
+            },
+            {
+                id: 5,
+                name: "Lucas Prieto",
+                rank: "AVIADOR",
+                rankCode: "E-2",
+                nuim: "56-789012",
+                bloodType: "O-",
+                nationality: "Argentino",
+                squadron: "41",
+                status: "active"
+            }
+        ];
+
+        // Datos de libros de vuelo
+        let flightLogs = [
+            {
+                id: 1,
+                pilot: "Teniente García",
+                aircraft: "Vellum",
+                departure: "2023-05-15T10:00",
+                arrival: "2023-05-15T11:30",
+                flightTime: "1:30",
+                route: "Base Aérea Norte - Base Aérea Sur",
+                purpose: "Entrenamiento de navegación",
+                remarks: "N/A"
+            }
+        ];
+
+        // Jerarquía de rangos para ordenamiento
+        const rankHierarchy = {
+            "AVIADOR E-2": 1,
+            "TENIENTE PRIMERO O-2": 2,
+            "CAPITAN O-3": 3,
+            "MAYOR O-4": 4,
+            "BRIGADIER GENERAL O-7": 7
+        };
+
+        let currentUser = null;
+        let currentAircraft = null;
+        let currentRequest = null;
+        let showArchived = false;
+
+        // Función de login
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+                // Actualizar información del usuario
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userRole').textContent = user.role + " - " + user.rank;
+                
+                // Mostrar/ocultar elementos según el rol
+                if (user.role === 'Instructor' || user.role === 'Administrador') {
+                    document.querySelectorAll('.instructor-only').forEach(el => {
+                        el.style.display = 'flex';
+                    });
+                } else {
+                    document.querySelectorAll('.instructor-only').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                }
+                
+                if (user.role === 'Administrador') {
+                    document.querySelectorAll('.admin-only').forEach(el => {
+                        el.style.display = 'block';
+                    });
+                    document.getElementById('adminAircraftControls').style.display = 'block';
+                } else {
+                    document.querySelectorAll('.admin-only').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    document.getElementById('adminAircraftControls').style.display = 'none';
+                }
+                
+                // Cargar datos iniciales
+                loadAircraftList();
+                loadCertificationForm();
+                loadMyCertifications();
+                loadFlightLogForm();
+                loadFlightLogs();
+                loadRequestsTable();
+                loadPersonnelList();
+                
+                // Mostrar la sección de aeronaves por defecto
+                showSection('aircraftSection');
+            } else {
+                alert('Usuario o contraseña incorrectos. Use las credenciales proporcionadas.');
+            }
+        }
+        
+        // Función de logout
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+        
+        // Función para mostrar secciones
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Mostrar la sección solicitada
+            document.getElementById(sectionId).style.display = 'block';
+        }
+        
+        // Cargar lista de aeronaves
+        function loadAircraftList() {
+            const aircraftList = document.getElementById('aircraftList');
+            aircraftList.innerHTML = '';
+            
+            aircraftData.forEach(aircraft => {
+                if (aircraft.status === 'active') {
+                    const aircraftCard = document.createElement('div');
+                    aircraftCard.className = 'aircraft-card';
+                    aircraftCard.innerHTML = `
+                        <div class="aircraft-img">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <div class="aircraft-info">
+                            <h3>${aircraft.name}</h3>
+                            <p>${aircraft.description.substring(0, 60)}...</p>
+                        </div>
+                    `;
+                    aircraftCard.addEventListener('click', () => showAircraftDetails(aircraft));
+                    aircraftList.appendChild(aircraftCard);
+                }
+            });
+        }
+        
+        // Mostrar detalles de aeronave
+        function showAircraftDetails(aircraft) {
+            currentAircraft = aircraft;
+            document.getElementById('modalAircraftName').textContent = aircraft.name;
+            document.getElementById('modalAircraftDescription').textContent = aircraft.description;
+            document.getElementById('aircraftModal').style.display = 'flex';
+            
+            // Mostrar u ocultar botones según el rol y certificaciones
+            const requestButton = document.querySelector('#modalAircraftActions button');
+            if (currentUser.role === 'Piloto' && currentUser.certifiedAircraft.includes(aircraft.id)) {
+                requestButton.textContent = 'Ya Certificado';
+                requestButton.disabled = true;
+                requestButton.style.backgroundColor = '#ccc';
+            } else if (currentUser.role === 'Piloto') {
+                requestButton.textContent = 'Solicitar Certificación';
+                requestButton.disabled = false;
+                requestButton.style.backgroundColor = '';
+            } else {
+                requestButton.style.display = 'none';
+            }
+        }
+        
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Solicitar certificación
+        function requestCertification() {
+            closeModal('aircraftModal');
+            showSection('certificationSection');
+            
+            // Seleccionar la aeronave actual en el formulario
+            document.getElementById('certAircraft').value = currentAircraft.id;
+        }
+        
+        // Cargar formulario de certificación
+        function loadCertificationForm() {
+            const certAircraft = document.getElementById('certAircraft');
+            certAircraft.innerHTML = '<option value="">Seleccione una aeronave</option>';
+            
+            aircraftData.forEach(aircraft => {
+                if (aircraft.status === 'active' && !currentUser.certifiedAircraft.includes(aircraft.id)) {
+                    const option = document.createElement('option');
+                    option.value = aircraft.id;
+                    option.textContent = aircraft.name;
+                    certAircraft.appendChild(option);
+                }
+            });
+        }
+        
+        // Enviar solicitud de certificación
+        function submitCertificationRequest() {
+            const aircraftId = document.getElementById('certAircraft').value;
+            const availability = document.getElementById('availability').value;
+            
+            if (!aircraftId || !availability) {
+                alert('Por favor, complete todos los campos obligatorios.');
+                return;
+            }
+            
+            const aircraft = aircraftData.find(a => a.id == aircraftId);
+            
+            // Crear nueva solicitud
+            const newRequest = {
+                id: certificationRequests.length + 1,
+                pilot: currentUser.name,
+                pilotId: currentUser.username,
+                aircraft: aircraft.name,
+                aircraftId: aircraft.id,
+                date: new Date().toLocaleDateString(),
+                status: 'pendiente',
+                availability: availability,
+                takenBy: null,
+                certified: false
+            };
+            
+            certificationRequests.push(newRequest);
+            
+            alert('Solicitud de certificación enviada correctamente.');
+            document.getElementById('certificationForm').reset();
+            loadMyCertifications();
+            loadRequestsTable();
+            
+            // Simular envío de webhook a Discord
+            console.log('Webhook enviado a Discord: Nueva solicitud de certificación', newRequest);
+        }
+        
+        // Cargar mis certificaciones
+        function loadMyCertifications() {
+            const myCertificationsTable = document.getElementById('myCertificationsTable');
+            myCertificationsTable.innerHTML = '';
+            
+            const myRequests = certificationRequests.filter(req => req.pilotId === currentUser.username);
+            
+            myRequests.forEach(request => {
+                const row = document.createElement('tr');
+                
+                let statusBadge;
+                if (request.status === 'pendiente') {
+                    statusBadge = '<span class="badge badge-warning">Pendiente</span>';
+                } else if (request.status === 'tomada') {
+                    statusBadge = '<span class="badge badge-primary">En revisión</span>';
+                } else if (request.status === 'aprobada') {
+                    statusBadge = '<span class="badge badge-success">Aprobada</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-danger">Rechazada</span>';
+                }
+                
+                row.innerHTML = `
+                    <td>${request.id}</td>
+                    <td>${request.aircraft}</td>
+                    <td>${request.date}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="viewRequestDetail(${request.id})">Detalles</button>
+                    </td>
+                `;
+                
+                myCertificationsTable.appendChild(row);
+            });
+        }
+        
+        // Cargar formulario de libro de vuelo
+        function loadFlightLogForm() {
+            const logAircraft = document.getElementById('logAircraft');
+            logAircraft.innerHTML = '<option value="">Seleccione una aeronave</option>';
+            
+            // Mostrar solo aeronaves certificadas para este usuario
+            aircraftData.forEach(aircraft => {
+                if (aircraft.status === 'active' && currentUser.certifiedAircraft.includes(aircraft.id)) {
+                    const option = document.createElement('option');
+                    option.value = aircraft.id;
+                    option.textContent = aircraft.name;
+                    logAircraft.appendChild(option);
+                }
+            });
+        }
+        
+        // Calcular tiempo de vuelo
+        function calculateFlightTime() {
+            const departure = new Date(document.getElementById('departure').value);
+            const arrival = new Date(document.getElementById('arrival').value);
+            
+            if (departure && arrival && arrival > departure) {
+                const diffMs = arrival - departure;
+                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                document.getElementById('flightTime').value = `${hours}:${minutes.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        // Enviar libro de vuelo
+        function submitFlightLog() {
+            const aircraftId = document.getElementById('logAircraft').value;
+            const departure = document.getElementById('departure').value;
+            const arrival = document.getElementById('arrival').value;
+            const flightTime = document.getElementById('flightTime').value;
+            const route = document.getElementById('route').value;
+            const purpose = document.getElementById('purpose').value;
+            const remarks = document.getElementById('remarks').value;
+            
+            if (!aircraftId || !departure || !arrival || !route || !purpose) {
+                alert('Por favor, complete todos los campos obligatorios.');
+                return;
+            }
+            
+            const aircraft = aircraftData.find(a => a.id == aircraftId);
+            
+            // Crear nuevo registro de vuelo
+            const newLog = {
+                id: flightLogs.length + 1,
+                pilot: currentUser.name,
+                aircraft: aircraft.name,
+                departure: departure,
+                arrival: arrival,
+                flightTime: flightTime,
+                route: route,
+                purpose: purpose,
+                remarks: remarks
+            };
+            
+            flightLogs.push(newLog);
+            
+            alert('Libro de vuelo registrado correctamente.');
+            document.getElementById('flightLogForm').reset();
+            loadFlightLogs();
+            
+            // Simular envío de webhook a Discord
+            console.log('Webhook enviado a Discord: Nuevo libro de vuelo', newLog);
+        }
+        
+        // Cargar libros de vuelo
+        function loadFlightLogs() {
+            const flightLogsTable = document.getElementById('flightLogsTable');
+            flightLogsTable.innerHTML = '';
+            
+            // Mostrar solo los registros del usuario actual (a menos que sea instructor o admin)
+            let userLogs = flightLogs;
+            if (currentUser.role === 'Piloto') {
+                userLogs = flightLogs.filter(log => log.pilot === currentUser.name);
+            }
+            
+            userLogs.forEach(log => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${log.id}</td>
+                    <td>${log.aircraft}</td>
+                    <td>${new Date(log.departure).toLocaleString()}</td>
+                    <td>${new Date(log.arrival).toLocaleString()}</td>
+                    <td>${log.flightTime}</td>
+                    <td>${log.route}</td>
+                    <td>${log.purpose}</td>
+                `;
+                
+                flightLogsTable.appendChild(row);
+            });
+        }
+        
+        // Cargar tabla de solicitudes (para instructores)
+        function loadRequestsTable() {
+            const requestsTable = document.getElementById('requestsTable');
+            requestsTable.innerHTML = '';
+            
+            certificationRequests.forEach(request => {
+                const row = document.createElement('tr');
+                
+                let statusBadge;
+                if (request.status === 'pendiente') {
+                    statusBadge = '<span class="badge badge-warning">Pendiente</span>';
+                } else if (request.status === 'tomada') {
+                    statusBadge = '<span class="badge badge-primary">En revisión</span>';
+                } else if (request.status === 'aprobada') {
+                    statusBadge = '<span class="badge badge-success">Aprobada</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-danger">Rechazada</span>';
+                }
+                
+                let actions = '';
+                if (request.status === 'pendiente') {
+                    actions = `<button class="btn-success" onclick="takeRequest(${request.id})">Tomar Solicitud</button>`;
+                } else if (request.status === 'tomada') {
+                    if (request.takenBy === currentUser.username) {
+                        actions = `
+                            <div class="request-taken">
+                                <p><strong>Solicitud tomada por: ${currentUser.name}</strong></p>
+                                <button class="btn-warning" onclick="certifyRequest(${request.id})">Certificar</button>
+                            </div>
+                        `;
+                    } else {
+                        const instructor = users.find(u => u.username === request.takenBy);
+                        actions = `<div class="request-taken">Solicitud tomada por: ${instructor ? instructor.name : 'Instructor'}</div>`;
+                    }
+                } else if (request.status === 'aprobada') {
+                    actions = `<div class="certified-status">Certificado</div>`;
+                }
+                
+                row.innerHTML = `
+                    <td>${request.id}</td>
+                    <td>${request.pilot}</td>
+                    <td>${request.aircraft}</td>
+                    <td>${request.date}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actions}</td>
+                `;
+                
+                requestsTable.appendChild(row);
+            });
+        }
+        
+        // Tomar solicitud
+        function takeRequest(requestId) {
+            const requestIndex = certificationRequests.findIndex(req => req.id === requestId);
+            
+            if (requestIndex !== -1) {
+                certificationRequests[requestIndex].status = 'tomada';
+                certificationRequests[requestIndex].takenBy = currentUser.username;
+                
+                alert('Solicitud tomada con éxito.');
+                loadRequestsTable();
+                
+                // Simular envío de webhook a Discord
+                console.log('Webhook enviado a Discord: Solicitud tomada', certificationRequests[requestIndex]);
+            }
+        }
+        
+        // Certificar solicitud
+        function certifyRequest(requestId) {
+            currentRequest = certificationRequests.find(req => req.id === requestId);
+            
+            if (currentRequest) {
+                document.getElementById('certifyRequestInfo').innerHTML = `
+                    <h3>Certificar solicitud #${currentRequest.id}</h3>
+                    <p><strong>Piloto:</strong> ${currentRequest.pilot}</p>
+                    <p><strong>Aeronave:</strong> ${currentRequest.aircraft}</p>
+                    <p><strong>Disponibilidad:</strong> ${currentRequest.availability}</p>
+                `;
+                
+                document.getElementById('certifyModal').style.display = 'flex';
+            }
+        }
+        
+        // Omitir observaciones
+        function skipObservations() {
+            document.getElementById('observations').value = 'N/A';
+            submitCertification();
+        }
+        
+        // Enviar certificación
+        function submitCertification() {
+            if (currentRequest) {
+                const observations = document.getElementById('observations').value;
+                const requestIndex = certificationRequests.findIndex(req => req.id === currentRequest.id);
+                
+                if (requestIndex !== -1) {
+                    certificationRequests[requestIndex].status = 'aprobada';
+                    certificationRequests[requestIndex].certified = true;
+                    certificationRequests[requestIndex].certifiedBy = currentUser.name;
+                    certificationRequests[requestIndex].certifiedDate = new Date().toLocaleDateString();
+                    certificationRequests[requestIndex].observations = observations;
+                    
+                    // Agregar la aeronave a las certificadas del piloto
+                    const pilotIndex = users.findIndex(u => u.username === certificationRequests[requestIndex].pilotId);
+                    if (pilotIndex !== -1 && !users[pilotIndex].certifiedAircraft.includes(certificationRequests[requestIndex].aircraftId)) {
+                        users[pilotIndex].certifiedAircraft.push(certificationRequests[requestIndex].aircraftId);
+                    }
+                    
+                    alert('Solicitud certificada con éxito.');
+                    closeModal('certifyModal');
+                    loadRequestsTable();
+                    loadMyCertifications();
+                    
+                    // Simular envío de webhook a Discord
+                    console.log('Webhook enviado a Discord: Solicitud certificada', certificationRequests[requestIndex]);
+                }
+            }
+        }
+        
+        // Ver detalles de solicitud
+        function viewRequestDetail(requestId) {
+            const request = certificationRequests.find(req => req.id === requestId);
+            
+            if (request) {
+                let detailContent = `
+                    <h3>Solicitud #${request.id}</h3>
+                    <p><strong>Piloto:</strong> ${request.pilot}</p>
+                    <p><strong>Aeronave:</strong> ${request.aircraft}</p>
+                    <p><strong>Fecha:</strong> ${request.date}</p>
+                    <p><strong>Disponibilidad:</strong> ${request.availability}</p>
+                    <p><strong>Estado:</strong> ${request.status}</p>
+                `;
+                
+                if (request.takenBy) {
+                    const instructor = users.find(u => u.username === request.takenBy);
+                    detailContent += `<p><strong>Tomada por:</strong> ${instructor ? instructor.name : request.takenBy}</p>`;
+                }
+                
+                if (request.certified) {
+                    detailContent += `
+                        <p><strong>Certificada por:</strong> ${request.certifiedBy}</p>
+                        <p><strong>Fecha de certificación:</strong> ${request.certifiedDate}</p>
+                        <p><strong>Observaciones:</strong> ${request.observations}</p>
+                    `;
+                }
+                
+                document.getElementById('requestDetailContent').innerHTML = detailContent;
+                document.getElementById('requestDetailModal').style.display = 'flex';
+            }
+        }
+        
+        // Cargar lista de personal
+        function loadPersonnelList() {
+            const activeList = document.getElementById('activePersonnelList');
+            const archivedList = document.getElementById('archivedPersonnelList');
+            
+            activeList.innerHTML = '';
+            archivedList.innerHTML = '';
+            
+            // Ordenar personal por rango (de mayor a menor)
+            const sortedPersonnel = [...personnelData].sort((a, b) => {
+                const rankA = rankHierarchy[`${a.rank} ${a.rankCode}`] || 0;
+                const rankB = rankHierarchy[`${b.rank} ${b.rankCode}`] || 0;
+                return rankB - rankA;
+            });
+            
+            sortedPersonnel.forEach(person => {
+                const personCard = document.createElement('div');
+                personCard.className = `personnel-card ${person.status === 'archived' ? 'archived' : ''}`;
+                
+                // Generar avatar con iniciales
+                const initials = person.name.split(' ').map(n => n[0]).join('');
+                
+                personCard.innerHTML = `
+                    <div class="personnel-avatar" style="background-color: ${getRandomColor(person.id)};">
+                        ${initials}
+                    </div>
+                    <div class="personnel-info">
+                        <h3>${person.name} <span class="rank-badge">${person.rank} ${person.rankCode}</span></h3>
+                        <p><strong>NUIM:</strong> ${person.nuim}</p>
+                        <p><strong>Escuadrón:</strong> ${person.squadron}</p>
+                        <p><strong>Tipo de sangre:</strong> ${person.bloodType} | <strong>Nacionalidad:</strong> ${person.nationality}</p>
+                    </div>
+                    <div class="personnel-actions">
+                        <button class="btn-success" onclick="promotePersonnel(${person.id})">Ascender</button>
+                        <button class="btn-warning" onclick="demotePersonnel(${person.id})">Degradar</button>
+                        <button class="btn-secondary" onclick="viewPersonnelDetails(${person.id})">Detalles</button>
+                        ${person.status === 'active' ? 
+                          `<button class="btn-danger" onclick="archivePersonnel(${person.id})">Archivar</button>` : 
+                          `<button class="btn-success" onclick="activatePersonnel(${person.id})">Activar</button>`
+                        }
+                    </div>
+                `;
+                
+                if (person.status === 'active') {
+                    activeList.appendChild(personCard);
+                } else {
+                    archivedList.appendChild(personCard);
+                }
+            });
+            
+            // Mostrar u ocultar sección de archivados
+            document.getElementById('archivedTitle').style.display = showArchived ? 'block' : 'none';
+            document.getElementById('archivedPersonnelList').style.display = showArchived ? 'block' : 'none';
+        }
+        
+        // Generar color basado en ID para avatares
+        function getRandomColor(seed) {
+            const colors = [
+                '#1a356e', '#b31942', '#5d8aa8', '#28a745', '#dc3545', 
+                '#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997'
+            ];
+            return colors[seed % colors.length];
+        }
+        
+        // Alternar vista de archivados
+        function toggleViewArchived() {
+            showArchived = !showArchived;
+            loadPersonnelList();
+        }
+        
+        // Ascender personal
+        function promotePersonnel(id) {
+            const person = personnelData.find(p => p.id === id);
+            if (person) {
+                const currentRank = `${person.rank} ${person.rankCode}`;
+                let newRank = currentRank;
+                
+                // Lógica simple de ascenso (en una app real sería más compleja)
+                if (currentRank === "AVIADOR E-2") newRank = "TENIENTE PRIMERO O-2";
+                else if (currentRank === "TENIENTE PRIMERO O-2") newRank = "CAPITAN O-3";
+                else if (currentRank === "CAPITAN O-3") newRank = "MAYOR O-4";
+                else if (currentRank === "MAYOR O-4") newRank = "BRIGADIER GENERAL O-7";
+                else {
+                    alert(`${person.name} ya tiene el rango máximo.`);
+                    return;
+                }
+                
+                const [newRankName, newRankCode] = newRank.split(' ');
+                person.rank = newRankName;
+                person.rankCode = newRankCode;
+                
+                alert(`${person.name} ha sido ascendido a ${newRank}`);
+                loadPersonnelList();
+            }
+        }
+        
+        // Degradar personal
+        function demotePersonnel(id) {
+            const person = personnelData.find(p => p.id === id);
+            if (person) {
+                const currentRank = `${person.rank} ${person.rankCode}`;
+                let newRank = currentRank;
+                
+                // Lógica simple de descenso (en una app real sería más compleja)
+                if (currentRank === "BRIGADIER GENERAL O-7") newRank = "MAYOR O-4";
+                else if (currentRank === "MAYOR O-4") newRank = "CAPITAN O-3";
+                else if (currentRank === "CAPITAN O-3") newRank = "TENIENTE PRIMERO O-2";
+                else if (currentRank === "TENIENTE PRIMERO O-2") newRank = "AVIADOR E-2";
+                else {
+                    alert(`${person.name} ya tiene el rango mínimo.`);
+                    return;
+                }
+                
+                const [newRankName, newRankCode] = newRank.split(' ');
+                person.rank = newRankName;
+                person.rankCode = newRankCode;
+                
+                alert(`${person.name} ha sido degradado a ${newRank}`);
+                loadPersonnelList();
+            }
+        }
+        
+        // Archivar personal
+        function archivePersonnel(id) {
+            const person = personnelData.find(p => p.id === id);
+            if (person && confirm(`¿Está seguro de que desea archivar a ${person.name}?`)) {
+                person.status = 'archived';
+                alert(`${person.name} ha sido archivado.`);
+                loadPersonnelList();
+            }
+        }
+        
+        // Activar personal
+        function activatePersonnel(id) {
+            const person = personnelData.find(p => p.id === id);
+            if (person) {
+                person.status = 'active';
+                alert(`${person.name} ha sido activado.`);
+                loadPersonnelList();
+            }
+        }
+        
+        // Ver detalles del personal
+        function viewPersonnelDetails(id) {
+            const person = personnelData.find(p => p.id === id);
+            if (person) {
+                alert(`Detalles de ${person.name}:\n
+- Rango: ${person.rank} ${person.rankCode}
+- NUIM: ${person.nuim}
+- Escuadrón: ${person.squadron}
+- Tipo de sangre: ${person.bloodType}
+- Nacionalidad: ${person.nationality}
+- Estado: ${person.status === 'active' ? 'Activo' : 'Archivado'}`);
+            }
+        }
+        
+        // Mostrar formulario para agregar personal
+        function showAddPersonnelForm() {
+            alert('Funcionalidad de agregar personal: Se abriría un formulario para agregar nuevo personal.');
+            // En una implementación completa, aquí se abriría un modal con un formulario
+        }
+        
+        // Funciones de administración
+        function showAddAircraftForm() {
+            alert('Funcionalidad de agregar aeronave: Se abriría un formulario para agregar nueva aeronave.');
+        }
+        
+        function editAircraft() {
+            alert(`Funcionalidad de edición: Se abriría un formulario para editar la aeronave ${currentAircraft.name}.`);
+        }
+        
+        function archiveAircraft() {
+            if (confirm(`¿Está seguro de que desea archivar la aeronave ${currentAircraft.name}?`)) {
+                alert(`Aeronave ${currentAircraft.name} archivada correctamente.`);
+                closeModal('aircraftModal');
+            }
+        }
+        
+        function manageAircraft() {
+            alert('Funcionalidad de gestión de aeronaves: Se abriría un panel para gestionar todas las aeronaves.');
+        }
+        
+        function managePersonnel() {
+            showSection('personnelSection');
+        }
+        
+        function viewSystemStats() {
+            alert('Funcionalidad de estadísticas: Se mostrarían estadísticas del sistema.');
+        }
+        
+        function resetSystem() {
+            if (confirm('¿Está seguro de que desea restablecer el sistema? Esto borrará todos los datos.')) {
+                alert('Sistema restablecido. En una implementación real, se borrarían todos los datos.');
+            }
+        }
+        
+        // Permitir login con la tecla Enter
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
