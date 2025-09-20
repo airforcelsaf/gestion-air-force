@@ -451,211 +451,142 @@
     </div>
 
     <script>
-        // Datos de ejemplo (en un caso real, estos vendrían de Google Sheets)
-        const users = [
-            { email: "admin@lsaf.gov.us", password: "admin123" }
-        ];
+        // URL de tu Apps Script desplegado
+        const API_URL = 'URL_DE_TU_APPS_SCRIPT'; // Reemplaza con tu URL
         
-        const pilots = [
-            {
-                id: 1,
-                name: "David Toro",
-                nuim: "14-291992",
-                birthdate: "1993-08-08",
-                nationality: "Ecuatoriana",
-                bloodType: "O+",
-                rank: "Mayor O-4",
-                email: "david_toro@lsaf.gov.us",
-                badgeUrl: "https://via.placeholder.com/100?text=O-4"
-            },
-            {
-                id: 2,
-                name: "Maria Rodriguez",
-                nuim: "15-301234",
-                birthdate: "1990-05-12",
-                nationality: "Colombiana",
-                bloodType: "A-",
-                rank: "Capitán O-3",
-                email: "maria_rodriguez@lsaf.gov.us",
-                badgeUrl: "https://via.placeholder.com/100?text=O-3"
-            },
-            {
-                id: 3,
-                name: "Carlos Méndez",
-                nuim: "13-281567",
-                birthdate: "1988-11-23",
-                nationality: "Mexicana",
-                bloodType: "B+",
-                rank: "Teniente Coronel O-5",
-                email: "carlos_mendez@lsaf.gov.us",
-                badgeUrl: "https://via.placeholder.com/100?text=O-5"
-            }
-        ];
-        
-        const promotions = [
-            {
-                pilotId: 1,
-                date: "2023-01-15",
-                rank: "Mayor O-4",
-                type: "ascenso",
-                badgeUrl: "https://via.placeholder.com/100?text=O-4"
-            },
-            {
-                pilotId: 1,
-                date: "2021-06-10",
-                rank: "Capitán O-3",
-                type: "ascenso",
-                badgeUrl: "https://via.placeholder.com/100?text=O-3"
-            },
-            {
-                pilotId: 1,
-                date: "2019-03-22",
-                rank: "Teniente O-2",
-                type: "ascenso",
-                badgeUrl: "https://via.placeholder.com/100?text=O-2"
-            }
-        ];
-        
-        // Elementos del DOM
-        const loginSection = document.getElementById('login-section');
-        const pilotsSection = document.getElementById('pilots-section');
-        const pilotDetailSection = document.getElementById('pilot-detail-section');
-        const loginForm = document.getElementById('login-form');
-        const pilotsContainer = document.getElementById('pilots-container');
-        const backButton = document.getElementById('back-button');
-        const showDetailsBtn = document.getElementById('show-details-btn');
-        const additionalInfo = document.getElementById('additional-info');
-        
-        // Datos del piloto seleccionado
-        let selectedPilot = null;
-        
-        // Event Listeners
-        loginForm.addEventListener('submit', handleLogin);
-        backButton.addEventListener('click', showPilotsList);
-        showDetailsBtn.addEventListener('click', toggleAdditionalInfo);
-        
-        // Función para manejar el login
-        function handleLogin(e) {
+        // Función para manejar el login (actualizada)
+        async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            // Verificar credenciales (en un caso real, esto se haría contra un servidor)
-            const user = users.find(u => u.email === email && u.password === password);
-            
-            if (user) {
-                loginSection.style.display = 'none';
-                pilotsSection.style.display = 'block';
-                loadPilots();
-            } else {
-                alert('Credenciales incorrectas. Por favor, intente nuevamente.');
+            try {
+                const response = await fetch(`${API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+                const result = await response.json();
+                
+                if (result.result === 'success') {
+                    loginSection.style.display = 'none';
+                    pilotsSection.style.display = 'block';
+                    await loadPilots();
+                } else {
+                    alert('Credenciales incorrectas. Por favor, intente nuevamente.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión. Por favor, intente más tarde.');
             }
         }
         
-        // Función para cargar la lista de pilotos
-        function loadPilots() {
-            pilotsContainer.innerHTML = '';
-            
-            pilots.forEach(pilot => {
-                const pilotCard = document.createElement('div');
-                pilotCard.className = 'pilot-card';
-                pilotCard.innerHTML = `
-                    <div class="pilot-card-header">
-                        ${pilot.rank}
-                    </div>
-                    <div class="pilot-card-body">
-                        <div class="rank-badge">
-                            <img src="${pilot.badgeUrl}" alt="Insignia de rango">
-                        </div>
-                        <div class="pilot-name">${pilot.name}</div>
-                        <div class="pilot-nuim">NUIM: ${pilot.nuim}</div>
-                    </div>
-                `;
+        // Función para cargar pilotos (actualizada)
+        async function loadPilots() {
+            try {
+                const response = await fetch(`${API_URL}?action=getPilots`);
+                const result = await response.json();
                 
-                pilotCard.addEventListener('click', () => showPilotDetails(pilot));
-                pilotsContainer.appendChild(pilotCard);
-            });
-        }
-        
-        // Función para mostrar detalles del piloto
-        function showPilotDetails(pilot) {
-            selectedPilot = pilot;
-            pilotsSection.style.display = 'none';
-            pilotDetailSection.style.display = 'block';
-            
-            // Actualizar información en la UI
-            document.getElementById('detail-badge').src = pilot.badgeUrl;
-            document.getElementById('detail-name').textContent = pilot.name;
-            document.getElementById('detail-nuim').textContent = `NUIM: ${pilot.nuim}`;
-            document.getElementById('detail-rank').textContent = pilot.rank;
-            document.getElementById('detail-email').textContent = pilot.email;
-            document.getElementById('detail-birthdate').textContent = formatDate(pilot.birthdate);
-            document.getElementById('detail-bloodtype').textContent = pilot.bloodType;
-            document.getElementById('detail-nationality').textContent = pilot.nationality;
-            
-            // Ocultar información adicional
-            additionalInfo.style.display = 'none';
-            showDetailsBtn.textContent = 'Ficha de Piloto';
-            
-            // Cargar historial de ascensos/descensos
-            loadPromotionsHistory(pilot.id);
-        }
-        
-        // Función para cargar el historial de ascensos/descensos
-        function loadPromotionsHistory(pilotId) {
-            const promotionsContainer = document.getElementById('promotions-container');
-            promotionsContainer.innerHTML = '';
-            
-            const pilotPromotions = promotions.filter(p => p.pilotId === pilotId);
-            
-            if (pilotPromotions.length === 0) {
-                promotionsContainer.innerHTML = '<p>No hay historial de ascensos/descensos.</p>';
-                return;
-            }
-            
-            pilotPromotions.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            pilotPromotions.forEach(promo => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'history-item';
-                
-                historyItem.innerHTML = `
-                    <div class="history-badge">
-                        <img src="${promo.badgeUrl}" alt="Insignia de rango">
-                    </div>
-                    <div class="history-details">
-                        <div class="history-rank">${promo.rank}</div>
-                        <div class="history-date">${formatDate(promo.date)}</div>
-                    </div>
-                    <div class="history-type">${promo.type === 'ascenso' ? 'ASCENSO' : 'DESCENSO'}</div>
-                `;
-                
-                promotionsContainer.appendChild(historyItem);
-            });
-        }
-        
-        // Función para mostrar la lista de pilotos
-        function showPilotsList() {
-            pilotDetailSection.style.display = 'none';
-            pilotsSection.style.display = 'block';
-        }
-        
-        // Función para mostrar/ocultar información adicional
-        function toggleAdditionalInfo() {
-            if (additionalInfo.style.display === 'none') {
-                additionalInfo.style.display = 'block';
-                showDetailsBtn.textContent = 'Ocultar Ficha';
-            } else {
-                additionalInfo.style.display = 'none';
-                showDetailsBtn.textContent = 'Ficha de Piloto';
+                if (result.result === 'success') {
+                    pilotsContainer.innerHTML = '';
+                    
+                    result.pilots.forEach(pilot => {
+                        const pilotCard = document.createElement('div');
+                        pilotCard.className = 'pilot-card';
+                        pilotCard.innerHTML = `
+                            <div class="pilot-card-header">
+                                ${pilot.rank || 'Piloto'}
+                            </div>
+                            <div class="pilot-card-body">
+                                <div class="rank-badge">
+                                    <img src="${pilot.badgeUrl}" alt="Insignia de rango">
+                                </div>
+                                <div class="pilot-name">${pilot.name}</div>
+                                <div class="pilot-nuim">NUIM: ${pilot.nuim}</div>
+                            </div>
+                        `;
+                        
+                        pilotCard.addEventListener('click', () => showPilotDetails(pilot));
+                        pilotsContainer.appendChild(pilotCard);
+                    });
+                } else {
+                    alert('Error al cargar los pilotos.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión al cargar pilotos.');
             }
         }
         
-        // Función auxiliar para formatear fechas
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+        // Función para mostrar detalles del piloto (actualizada)
+        async function showPilotDetails(pilot) {
+            try {
+                const response = await fetch(`${API_URL}?action=getPilotDetails&id=${pilot.id}`);
+                const result = await response.json();
+                
+                if (result.result === 'success') {
+                    selectedPilot = result.pilot;
+                    pilotsSection.style.display = 'none';
+                    pilotDetailSection.style.display = 'block';
+                    
+                    // Actualizar información en la UI
+                    document.getElementById('detail-badge').src = selectedPilot.badgeUrl;
+                    document.getElementById('detail-name').textContent = selectedPilot.name;
+                    document.getElementById('detail-nuim').textContent = `NUIM: ${selectedPilot.nuim}`;
+                    document.getElementById('detail-rank').textContent = selectedPilot.rank;
+                    document.getElementById('detail-email').textContent = selectedPilot.email;
+                    document.getElementById('detail-birthdate').textContent = formatDate(selectedPilot.birthdate);
+                    document.getElementById('detail-bloodtype').textContent = selectedPilot.bloodType;
+                    document.getElementById('detail-nationality').textContent = selectedPilot.nationality;
+                    
+                    // Ocultar información adicional
+                    additionalInfo.style.display = 'none';
+                    showDetailsBtn.textContent = 'Ficha de Piloto';
+                    
+                    // Cargar historial de ascensos/descensos
+                    await loadPromotionsHistory(selectedPilot.id);
+                } else {
+                    alert('Error al cargar los detalles del piloto.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión al cargar detalles del piloto.');
+            }
         }
+        
+        // Función para cargar el historial de ascensos/descensos (actualizada)
+        async function loadPromotionsHistory(pilotId) {
+            try {
+                const response = await fetch(`${API_URL}?action=getPromotions&pilotId=${pilotId}`);
+                const result = await response.json();
+                
+                const promotionsContainer = document.getElementById('promotions-container');
+                promotionsContainer.innerHTML = '';
+                
+                if (result.result === 'success' && result.promotions.length > 0) {
+                    result.promotions.forEach(promo => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        
+                        historyItem.innerHTML = `
+                            <div class="history-badge">
+                                <img src="${promo.badgeUrl}" alt="Insignia de rango">
+                            </div>
+                            <div class="history-details">
+                                <div class="history-rank">${promo.newRank}</div>
+                                <div class="history-date">${formatDate(promo.date)}</div>
+                            </div>
+                            <div class="history-type">${promo.type === 'ascenso' ? 'ASCENSO' : 'DESCENSO'}</div>
+                        `;
+                        
+                        promotionsContainer.appendChild(historyItem);
+                    });
+                } else {
+                    promotionsContainer.innerHTML = '<p>No hay historial de ascensos/descensos.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                promotionsContainer.innerHTML = '<p>Error al cargar el historial.</p>';
+            }
+        }
+        
+        // El resto de tu código JavaScript anterior...
     </script>
 </body>
 </html>
