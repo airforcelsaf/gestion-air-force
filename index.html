@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema LSAF - Fuerza Aérea</title>
     <style>
-        /* Tus estilos actuales permanecen igual */
         :root {
             --airforce-blue: #00308F;
             --airforce-light: #5072A7;
@@ -252,6 +251,12 @@
             font-size: 0.9rem;
             margin-top: 0.25rem;
         }
+        
+        .success-message {
+            color: #28a745;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
@@ -268,7 +273,7 @@
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" required value="12345">
                 </div>
-                <button type="submit" class="btn btn-block" id="loginButton">Iniciar sesión</button>
+                <button type="submit" class="btn btn-block">Iniciar sesión</button>
                 <div id="loginMessage" style="margin-top: 1rem;"></div>
             </form>
         </div>
@@ -307,6 +312,19 @@
                 </div>
             </div>
             
+            <!-- Página de Aeronaves -->
+            <div class="page" id="aeronavesPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Aeronaves</h2>
+                        <button class="btn" id="addAeronaveBtn">Agregar Aeronave</button>
+                    </div>
+                    <div id="aeronavesList">
+                        <!-- Lista de aeronaves se cargará aquí -->
+                    </div>
+                </div>
+            </div>
+            
             <!-- Otras páginas... -->
         </main>
     </div>
@@ -324,14 +342,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM completamente cargado');
             checkSession();
-            setupEventListeners();
+            setupLoginEventListeners(); // Solo configuramos los listeners del login inicialmente
         });
         
         function checkSession() {
             console.log('Verificando sesión...');
             const userSession = localStorage.getItem('lsaf_user');
             if (userSession) {
-                console.log('Sesión encontrada:', userSession);
+                console.log('Sesión encontrada');
                 currentUser = JSON.parse(userSession);
                 showApp();
             } else {
@@ -339,31 +357,28 @@
             }
         }
         
-        function setupEventListeners() {
-            console.log('Configurando event listeners...');
+        // Solo configuramos los listeners del login al principio
+        function setupLoginEventListeners() {
+            console.log('Configurando event listeners del login...');
             
-            // Inicio de sesión - MÚLTIPLES FORMAS DE CAPTURAR EL EVENTO
             const loginForm = document.getElementById('loginForm');
-            const loginButton = document.getElementById('loginButton');
-            
             if (loginForm) {
                 loginForm.addEventListener('submit', handleLogin);
                 console.log('Event listener agregado al formulario de login');
             } else {
                 console.error('Formulario de login no encontrado');
             }
-            
-            if (loginButton) {
-                loginButton.addEventListener('click', handleLogin);
-                console.log('Event listener agregado al botón de login');
-            } else {
-                console.error('Botón de login no encontrado');
-            }
+        }
+        
+        // Configuramos los listeners de la aplicación después del login
+        function setupAppEventListeners() {
+            console.log('Configurando event listeners de la aplicación...');
             
             // Cerrar sesión
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', handleLogout);
+                console.log('Event listener agregado al botón de logout');
             }
             
             // Navegación entre pestañas
@@ -374,25 +389,14 @@
                     switchPage(pageId);
                 });
             });
+            console.log('Event listeners de navegación configurados');
             
-            // Botones para agregar elementos
-            document.getElementById('addPilotoBtn').addEventListener('click', showPilotoModal);
-            document.getElementById('cancelPilotoBtn').addEventListener('click', hidePilotoModal);
-            document.querySelector('.close-modal').addEventListener('click', hidePilotoModal);
-            
-            // Formulario de piloto
-            document.getElementById('pilotoForm').addEventListener('submit', savePiloto);
-            
-            console.log('Todos los event listeners configurados');
+            // Botones para agregar elementos (los configuramos cuando se necesiten)
         }
         
         async function handleLogin(e) {
-            console.log('handleLogin ejecutado', e);
-            
-            // Prevenir el comportamiento por defecto del formulario
-            if (e && e.preventDefault) {
-                e.preventDefault();
-            }
+            console.log('handleLogin ejecutado');
+            e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -403,7 +407,6 @@
             showLoginMessage('Conectando...', 'info');
             
             try {
-                // Construir URL para la solicitud
                 const url = `${API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
                 console.log('URL de solicitud:', url);
                 
@@ -418,7 +421,12 @@
                     currentUser = data.user;
                     localStorage.setItem('lsaf_user', JSON.stringify(currentUser));
                     showLoginMessage('¡Login exitoso!', 'success');
-                    showApp();
+                    
+                    // Esperar un momento antes de mostrar la app para que se vea el mensaje
+                    setTimeout(() => {
+                        showApp();
+                    }, 1000);
+                    
                 } else {
                     console.log('Error en login:', data.error);
                     showLoginMessage(data.error, 'error');
@@ -453,6 +461,9 @@
             document.getElementById('appContainer').style.display = 'block';
             document.getElementById('userName').textContent = currentUser.nombre;
             
+            // Ahora configuramos los listeners de la aplicación
+            setupAppEventListeners();
+            
             // Cargar datos iniciales
             loadInitialData();
         }
@@ -467,56 +478,89 @@
         
         function switchPage(pageId) {
             console.log('Cambiando a página:', pageId);
-            // Implementar cambio de página
+            
+            // Quitar clase active de todas las pestañas y páginas
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            
+            // Activar la pestaña y página seleccionada
+            document.querySelector(`.nav-tab[data-page="${pageId}"]`).classList.add('active');
+            document.getElementById(`${pageId}Page`).classList.add('active');
         }
         
-        function loadInitialData() {
+        async function loadInitialData() {
             console.log('Cargando datos iniciales');
-            // Implementar carga de datos
-        }
-        
-        function showPilotoModal() {
-            console.log('Mostrando modal de piloto');
-            document.getElementById('pilotoModal').classList.add('active');
-        }
-        
-        function hidePilotoModal() {
-            console.log('Ocultando modal de piloto');
-            document.getElementById('pilotoModal').classList.remove('active');
-            document.getElementById('pilotoForm').reset();
-        }
-        
-        function savePiloto(e) {
-            e.preventDefault();
-            console.log('Guardando piloto');
-            // Implementar guardado de piloto
-        }
-        
-        // Función para probar la conexión directamente
-        async function testConnection() {
-            console.log('Probando conexión con la API...');
+            
             try {
-                const response = await fetch(`${API_URL}?action=test`);
-                const data = await response.json();
-                console.log('Test de conexión:', data);
-                return data;
+                // Cargar pilotos inicialmente
+                await loadPilotos();
+                displayPilotos();
             } catch (error) {
-                console.error('Error en test de conexión:', error);
-                return {error: error.message};
+                console.error('Error cargando datos iniciales:', error);
             }
         }
+        
+        async function loadPilotos() {
+            try {
+                console.log('Cargando pilotos desde API...');
+                const response = await fetch(`${API_URL}?action=getPilotos`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                console.log('Pilotos cargados:', data.pilotos);
+                // Aquí procesaríamos los datos, por ahora solo mostramos un mensaje
+                return data.pilotos || [];
+            } catch (error) {
+                console.error('Error cargando pilotos:', error);
+                return [];
+            }
+        }
+        
+        function displayPilotos() {
+            const pilotosList = document.getElementById('pilotosList');
+            pilotosList.innerHTML = '<p>Lista de pilotos cargada correctamente. Aquí se mostrarán los pilotos.</p>';
+            
+            // Por ahora mostramos un mensaje, luego cargaremos los datos reales
+            const demoPilotos = [
+                { nombre: 'David Toro', nuim: '10-291992', rango: 'Teniente Coronel' },
+                { nombre: 'Juan Pérez', nuim: '10-291993', rango: 'Mayor' }
+            ];
+            
+            demoPilotos.forEach(piloto => {
+                const pilotoItem = document.createElement('div');
+                pilotoItem.className = 'piloto-item';
+                pilotoItem.innerHTML = `
+                    <div class="piloto-insignia">${piloto.rango.charAt(0)}</div>
+                    <div class="piloto-info">
+                        <div class="piloto-nombre">${piloto.nombre}</div>
+                        <div class="piloto-nuim">${piloto.nuim}</div>
+                    </div>
+                    <button class="btn" onclick="viewPiloto('${piloto.nuim}')">Ver</button>
+                `;
+                pilotosList.appendChild(pilotoItem);
+            });
+        }
+        
+        function viewPiloto(nuim) {
+            alert(`Ver perfil del piloto con NUIM: ${nuim}`);
+        }
+        
+        // Hacer funciones globales para usar en onclick
+        window.viewPiloto = viewPiloto;
         
         // Probar la conexión al cargar la página
         window.addEventListener('load', function() {
             console.log('Página completamente cargada');
-            testConnection();
+            
+            // Probar conexión con la API
+            fetch(`${API_URL}?action=test`)
+                .then(response => response.json())
+                .then(data => console.log('Test de conexión API:', data))
+                .catch(error => console.error('Error en test de conexión:', error));
         });
-        
-        // Hacer funciones globales para debugging
-        window.debugLogin = function() {
-            console.log('Debug: Forzando ejecución de handleLogin');
-            handleLogin({preventDefault: () => {}});
-        };
         
         console.log('Aplicación LSAF inicializada correctamente');
     </script>
