@@ -192,6 +192,20 @@
             color: green;
             margin-top: 10px;
         }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -207,7 +221,7 @@
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" required value="12345">
             </div>
-            <button type="submit" style="width: 100%;">Iniciar Sesión</button>
+            <button type="submit" style="width: 100%;" id="loginButton">Iniciar Sesión</button>
         </form>
     </div>
 
@@ -297,30 +311,44 @@
         // URL de tu Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKwSG4WlRuZEYq4wHB87Lw2pfWJuPdlKxmXj4ITBSXPjwTLgkGIe7iNSKW8p3d82K79w/exec';
         
+        // URL de proxy CORS para evitar problemas de CORS
+        const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+        
         // Datos del usuario actual
         let currentUser = null;
         
         // Función para realizar solicitudes con manejo de CORS
         async function makeRequest(data) {
             try {
-                // Convertir el objeto data a parámetros de URL para una solicitud GET
-                const params = new URLSearchParams();
-                for (const key in data) {
-                    params.append(key, data[key]);
-                }
-                
-                // Hacer la solicitud a través de un proxy CORS si es necesario
-                const response = await fetch(`${SCRIPT_URL}?${params.toString()}`, {
-                    method: 'GET',
+                // Usar proxy CORS para evitar problemas
+                const response = await fetch(CORS_PROXY + SCRIPT_URL, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams(data).toString()
                 });
                 
                 return await response.json();
             } catch (error) {
                 console.error('Error en la solicitud:', error);
-                throw error;
+                
+                // Intentar sin proxy si falla
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams(data).toString()
+                    });
+                    
+                    return await response.json();
+                } catch (secondError) {
+                    console.error('Error en segundo intento:', secondError);
+                    throw new Error('No se pudo conectar con el servidor');
+                }
             }
         }
         
@@ -356,6 +384,12 @@
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loginButton = document.getElementById('loginButton');
+            
+            // Cambiar texto del botón a "Cargando..."
+            const originalText = loginButton.textContent;
+            loginButton.innerHTML = '<span class="loading"></span> Cargando...';
+            loginButton.disabled = true;
             
             try {
                 const result = await makeRequest({
@@ -368,12 +402,16 @@
                     currentUser = result.user;
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     showView('mainView');
-                    loadAllData();
+                    await loadAllData();
                 } else {
                     alert('Error: ' + result.message);
                 }
             } catch (error) {
                 alert('Error de conexión: ' + error.message);
+            } finally {
+                // Restaurar texto original del botón
+                loginButton.textContent = originalText;
+                loginButton.disabled = false;
             }
         });
         
@@ -591,24 +629,24 @@
                     leadershipInfo.innerHTML = `
                         <div class="card">
                             <h3>Liderazgo</h3>
-                            <p>Líder: ${result.data.lider.nombre}</p>
-                            <p>Fecha de asunción: ${result.data.lider.fecha_asuncion}</p>
-                            <img src="${result.data.lider.foto || 'https://via.placeholder.com/150'}" alt="Foto del líder" style="height: 100px; object-fit: cover;">
+                            <p>Líder: ${result.data.lider?.nombre || 'No especificado'}</p>
+                            <p>Fecha de asunción: ${result.data.lider?.fecha_asuncion || 'No especificada'}</p>
+                            <img src="${result.data.lider?.foto || 'https://via.placeholder.com/150'}" alt="Foto del líder" style="height: 100px; object-fit: cover;">
                         </div>
                     `;
                     
                     missionVision.innerHTML = `
                         <div class="card">
                             <h3>Misión y Visión</h3>
-                            <p><strong>Misión:</strong> ${result.data.mision}</p>
-                            <p><strong>Visión:</strong> ${result.data.vision}</p>
+                            <p><strong>Misión:</strong> ${result.data.mision || 'No especificada'}</p>
+                            <p><strong>Visión:</strong> ${result.data.vision || 'No especificada'}</p>
                         </div>
                     `;
                     
                     flightTimesSummary.innerHTML = `
                         <div class="card">
                             <h3>Tiempos de Vuelo Totales</h3>
-                            <p>Total de horas voladas: ${result.data.tiempos_totales} horas</p>
+                            <p>Total de horas voladas: ${result.data.tiempos_totales || '0'} horas</p>
                         </div>
                     `;
                 }
@@ -621,7 +659,7 @@
         function showAddPilotForm() {
             const formHtml = `
                 <h2>Agregar Nuevo Piloto</h2>
-                <form onsubmit="addPilot(event)">
+                <form onsubmit="event.preventDefault(); addPilot()">
                     <div class="form-group">
                         <label for="newPilotEmail">Correo electrónico</label>
                         <input type="email" id="newPilotEmail" required>
@@ -669,9 +707,7 @@
         }
         
         // Agregar piloto
-        async function addPilot(event) {
-            event.preventDefault();
-            // Lógica para agregar piloto a la base de datos
+        async function addPilot() {
             alert('Función de agregar piloto en desarrollo');
         }
         
@@ -708,7 +744,7 @@
                                     pilot.certificaciones.map(cert => `<li>${cert.aeronave} - ${cert.fecha}</li>`).join('') : 
                                     '<li>No tiene certificaciones</li>'}
                             </ul>
-                            <button onclick="showAddCertificationForm('${pilot.correo}')">Agregar Certificación</button>
+                            <button onclick="alert('Función en desarrollo')">Agregar Certificación</button>
                         </div>
                     `;
                     
@@ -753,13 +789,14 @@
                     
                     // Botón de editar
                     detailHtml += `
-                        <button onclick="showEditPilotForm('${pilot.correo}')">Editar Piloto</button>
+                        <button onclick="alert('Función en desarrollo')">Editar Piloto</button>
                     `;
                     
                     showModal(detailHtml);
                 }
             } catch (error) {
                 console.error('Error loading pilot details:', error);
+                alert('Error al cargar los detalles del piloto: ' + error.message);
             }
         }
         
@@ -767,7 +804,7 @@
         function showAddAircraftForm() {
             const formHtml = `
                 <h2>Agregar Nueva Aeronave</h2>
-                <form onsubmit="addAircraft(event)">
+                <form onsubmit="event.preventDefault(); addAircraft()">
                     <div class="form-group">
                         <label for="newAircraftCallsign">Callsign</label>
                         <input type="text" id="newAircraftCallsign" required>
@@ -790,11 +827,16 @@
             showModal(formHtml);
         }
         
+        // Agregar aeronave
+        async function addAircraft() {
+            alert('Función de agregar aeronave en desarrollo');
+        }
+        
         // Mostrar formulario para agregar libro de vuelo
         function showAddFlightLogForm() {
             const formHtml = `
                 <h2>Agregar Libro de Vuelo</h2>
-                <form onsubmit="addFlightLog(event)">
+                <form onsubmit="event.preventDefault(); addFlightLog()">
                     <div class="form-group">
                         <label for="newFlightLogAircraft">Aeronave</label>
                         <select id="newFlightLogAircraft" required>
@@ -832,11 +874,16 @@
             showModal(formHtml);
         }
         
+        // Agregar libro de vuelo
+        async function addFlightLog() {
+            alert('Función de agregar libro de vuelo en desarrollo');
+        }
+        
         // Mostrar formulario para solicitar certificación
         function showAddRequestForm() {
             const formHtml = `
                 <h2>Solicitar Certificación</h2>
-                <form onsubmit="addRequest(event)">
+                <form onsubmit="event.preventDefault(); addRequest()">
                     <div class="form-group">
                         <label for="newRequestAircraft">Aeronave</label>
                         <select id="newRequestAircraft" required>
@@ -864,11 +911,16 @@
             showModal(formHtml);
         }
         
+        // Agregar solicitud
+        async function addRequest() {
+            alert('Función de agregar solicitud en desarrollo');
+        }
+        
         // Mostrar formulario para agregar rango
         function showAddRankForm() {
             const formHtml = `
                 <h2>Agregar Rango</h2>
-                <form onsubmit="addRank(event)">
+                <form onsubmit="event.preventDefault(); addRank()">
                     <div class="form-group">
                         <label for="newRankName">Nombre del rango</label>
                         <input type="text" id="newRankName" required>
@@ -893,6 +945,11 @@
             `;
             
             showModal(formHtml);
+        }
+        
+        // Agregar rango
+        async function addRank() {
+            alert('Función de agregar rango en desarrollo');
         }
 
         // Inicialización
