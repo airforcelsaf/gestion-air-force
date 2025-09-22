@@ -362,102 +362,44 @@
         }
         
         // Función para realizar solicitudes con manejo de CORS
-        async function makeRequest(data) {
-            const requestId = addDebugInfo(`Iniciando solicitud: ${JSON.stringify(data)}`);
-            
-            try {
-                // Usar enfoque JSONP para evitar problemas de CORS
-                return await new Promise((resolve, reject) => {
-                    const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.round(1000000 * Math.random());
-                    const script = document.createElement('script');
-                    
-                    // Construir URL con parámetros
-                    const params = new URLSearchParams();
-                    for (const key in data) {
-                        params.append(key, data[key]);
-                    }
-                    
-                    // Configurar el script
-                    window[callbackName] = function(response) {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        
-                        if (response.success) {
-                            addDebugInfo(`#${requestId}: Respuesta exitosa`);
-                            resolve(response);
-                        } else {
-                            addDebugInfo(`#${requestId}: Error en respuesta: ${response.message}`);
-                            reject(new Error(response.message || 'Error desconocido'));
-                        }
-                    };
-                    
-                    // Manejar errores
-                    script.onerror = function() {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        addDebugInfo(`#${requestId}: Error de carga del script`);
-                        reject(new Error('Error de conexión con el servidor'));
-                    };
-                    
-                    // Establecer la fuente del script
-                    script.src = `${SCRIPT_URL}?${params.toString()}&callback=${callbackName}`;
-                    document.body.appendChild(script);
-                    
-                    // Timeout después de 30 segundos
-                    setTimeout(() => {
-                        if (window[callbackName]) {
-                            delete window[callbackName];
-                            document.body.removeChild(script);
-                            addDebugInfo(`#${requestId}: Timeout de la solicitud`);
-                            reject(new Error('Timeout de la solicitud'));
-                        }
-                    }, 30000);
-                });
-            } catch (error) {
-                addDebugInfo(`#${requestId}: Error en la solicitud: ${error.message}`);
-                
-                // Intentar con fetch como fallback
-                try {
-                    addDebugInfo(`#${requestId}: Intentando con fetch como fallback`);
-                    
-                    // Usar proxy CORS para evitar problemas
-                    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SCRIPT_URL);
-                    const response = await fetch(proxyUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: new URLSearchParams(data).toString()
-                    });
-                    
-                    const text = await response.text();
-                    addDebugInfo(`#${requestId}: Respuesta en texto: ${text.substring(0, 200)}...`);
-                    
-                    // Intentar parsear como JSON
-                    try {
-                        const result = JSON.parse(text);
-                        if (result.success) {
-                            addDebugInfo(`#${requestId}: Respuesta exitosa con fetch`);
-                            return result;
-                        } else {
-                            throw new Error(result.message || 'Error desconocido');
-                        }
-                    } catch (e) {
-                        // Si falla el parseo JSON, verificar si es HTML
-                        if (text.includes('<!DOCTYPE') || text.includes('<html')) {
-                            addDebugInfo(`#${requestId}: El servidor respondió con HTML en lugar de JSON`);
-                            throw new Error('El servidor respondió con una página HTML. Verifica la URL del script.');
-                        } else {
-                            addDebugInfo(`#${requestId}: No se pudo parsear la respuesta: ${text.substring(0, 100)}`);
-                            throw new Error('Respuesta inválida del servidor');
-                        }
-                    }
-                } catch (secondError) {
-                    addDebugInfo(`#${requestId}: Error en segundo intento: ${secondError.message}`);
-                    throw new Error('No se pudo conectar con el servidor: ' + secondError.message);
-                }
-            }
-        }
+async function makeRequest(data) {
+  const requestId = addDebugInfo(`Iniciando solicitud: ${JSON.stringify(data)}`);
+  
+  try {
+    // Construir URL con parámetros
+    const params = new URLSearchParams();
+    for (const key in data) {
+      params.append(key, data[key]);
+    }
+    
+    const url = `${SCRIPT_URL}?${params.toString()}`;
+    addDebugInfo(`#${requestId}: URL: ${url}`);
+    
+    // Hacer la solicitud
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const text = await response.text();
+    addDebugInfo(`#${requestId}: Respuesta del servidor: ${text.substring(0, 200)}...`);
+    
+    // Intentar parsear como JSON
+    try {
+      const result = JSON.parse(text);
+      addDebugInfo(`#${requestId}: JSON parseado correctamente`);
+      return result;
+    } catch (e) {
+      addDebugInfo(`#${requestId}: Error parseando JSON: ${e.message}`);
+      throw new Error('Respuesta inválida del servidor: no es JSON válido');
+    }
+  } catch (error) {
+    addDebugInfo(`#${requestId}: Error en la solicitud: ${error.message}`);
+    throw error;
+  }
+}
         
         // Mostrar u ocultar vistas
         function showView(viewId) {
