@@ -104,6 +104,11 @@
             background-color: var(--secondary);
         }
         
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
         /* Listas y tarjetas */
         .card-grid {
             display: grid;
@@ -186,11 +191,19 @@
         .error {
             color: red;
             margin-top: 10px;
+            padding: 10px;
+            background-color: #ffe6e6;
+            border-radius: 4px;
+            border: 1px solid #ffcccc;
         }
         
         .success {
             color: green;
             margin-top: 10px;
+            padding: 10px;
+            background-color: #e6ffe6;
+            border-radius: 4px;
+            border: 1px solid #ccffcc;
         }
         
         .loading {
@@ -205,6 +218,18 @@
         
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        .debug-info {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow: auto;
+            max-height: 200px;
+            display: none;
         }
     </style>
 </head>
@@ -222,7 +247,12 @@
                 <input type="password" id="password" required value="12345">
             </div>
             <button type="submit" style="width: 100%;" id="loginButton">Iniciar Sesión</button>
+            <div id="loginError" class="error" style="display: none;"></div>
         </form>
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="toggleDebug()" style="background: #666; font-size: 12px;">Mostrar información de depuración</button>
+            <div id="debugInfo" class="debug-info"></div>
+        </div>
     </div>
 
     <!-- Vista Principal (después del login) -->
@@ -311,43 +341,120 @@
         // URL de tu Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKwSG4WlRuZEYq4wHB87Lw2pfWJuPdlKxmXj4ITBSXPjwTLgkGIe7iNSKW8p3d82K79w/exec';
         
-        // URL de proxy CORS para evitar problemas de CORS
-        const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-        
         // Datos del usuario actual
         let currentUser = null;
+        let requestCounter = 0;
+        
+        // Función para mostrar/ocultar información de depuración
+        function toggleDebug() {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Función para agregar información de depuración
+        function addDebugInfo(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            const requestId = ++requestCounter;
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.innerHTML += `[${timestamp}] #${requestId}: ${message}\n`;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+            return requestId;
+        }
         
         // Función para realizar solicitudes con manejo de CORS
         async function makeRequest(data) {
+            const requestId = addDebugInfo(`Iniciando solicitud: ${JSON.stringify(data)}`);
+            
             try {
-                // Usar proxy CORS para evitar problemas
-                const response = await fetch(CORS_PROXY + SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: new URLSearchParams(data).toString()
+                // Usar enfoque JSONP para evitar problemas de CORS
+                return await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.round(1000000 * Math.random());
+                    const script = document.createElement('script');
+                    
+                    // Construir URL con parámetros
+                    const params = new URLSearchParams();
+                    for (const key in data) {
+                        params.append(key, data[key]);
+                    }
+                    
+                    // Configurar el script
+                    window[callbackName] = function(response) {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        
+                        if (response.success) {
+                            addDebugInfo(`#${requestId}: Respuesta exitosa`);
+                            resolve(response);
+                        } else {
+                            addDebugInfo(`#${requestId}: Error en respuesta: ${response.message}`);
+                            reject(new Error(response.message || 'Error desconocido'));
+                        }
+                    };
+                    
+                    // Manejar errores
+                    script.onerror = function() {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        addDebugInfo(`#${requestId}: Error de carga del script`);
+                        reject(new Error('Error de conexión con el servidor'));
+                    };
+                    
+                    // Establecer la fuente del script
+                    script.src = `${SCRIPT_URL}?${params.toString()}&callback=${callbackName}`;
+                    document.body.appendChild(script);
+                    
+                    // Timeout después de 30 segundos
+                    setTimeout(() => {
+                        if (window[callbackName]) {
+                            delete window[callbackName];
+                            document.body.removeChild(script);
+                            addDebugInfo(`#${requestId}: Timeout de la solicitud`);
+                            reject(new Error('Timeout de la solicitud'));
+                        }
+                    }, 30000);
                 });
-                
-                return await response.json();
             } catch (error) {
-                console.error('Error en la solicitud:', error);
+                addDebugInfo(`#${requestId}: Error en la solicitud: ${error.message}`);
                 
-                // Intentar sin proxy si falla
+                // Intentar con fetch como fallback
                 try {
-                    const response = await fetch(SCRIPT_URL, {
+                    addDebugInfo(`#${requestId}: Intentando con fetch como fallback`);
+                    
+                    // Usar proxy CORS para evitar problemas
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SCRIPT_URL);
+                    const response = await fetch(proxyUrl, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
+                            'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: new URLSearchParams(data).toString()
                     });
                     
-                    return await response.json();
+                    const text = await response.text();
+                    addDebugInfo(`#${requestId}: Respuesta en texto: ${text.substring(0, 200)}...`);
+                    
+                    // Intentar parsear como JSON
+                    try {
+                        const result = JSON.parse(text);
+                        if (result.success) {
+                            addDebugInfo(`#${requestId}: Respuesta exitosa con fetch`);
+                            return result;
+                        } else {
+                            throw new Error(result.message || 'Error desconocido');
+                        }
+                    } catch (e) {
+                        // Si falla el parseo JSON, verificar si es HTML
+                        if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                            addDebugInfo(`#${requestId}: El servidor respondió con HTML en lugar de JSON`);
+                            throw new Error('El servidor respondió con una página HTML. Verifica la URL del script.');
+                        } else {
+                            addDebugInfo(`#${requestId}: No se pudo parsear la respuesta: ${text.substring(0, 100)}`);
+                            throw new Error('Respuesta inválida del servidor');
+                        }
+                    }
                 } catch (secondError) {
-                    console.error('Error en segundo intento:', secondError);
-                    throw new Error('No se pudo conectar con el servidor');
+                    addDebugInfo(`#${requestId}: Error en segundo intento: ${secondError.message}`);
+                    throw new Error('No se pudo conectar con el servidor: ' + secondError.message);
                 }
             }
         }
@@ -379,6 +486,19 @@
             document.getElementById('modalOverlay').style.display = 'none';
         }
         
+        // Mostrar error de login
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        // Ocultar error de login
+        function hideLoginError() {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.style.display = 'none';
+        }
+        
         // Iniciar sesión
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -390,6 +510,7 @@
             const originalText = loginButton.textContent;
             loginButton.innerHTML = '<span class="loading"></span> Cargando...';
             loginButton.disabled = true;
+            hideLoginError();
             
             try {
                 const result = await makeRequest({
@@ -404,10 +525,10 @@
                     showView('mainView');
                     await loadAllData();
                 } else {
-                    alert('Error: ' + result.message);
+                    showLoginError('Error: ' + result.message);
                 }
             } catch (error) {
-                alert('Error de conexión: ' + error.message);
+                showLoginError('Error de conexión: ' + error.message);
             } finally {
                 // Restaurar texto original del botón
                 loginButton.textContent = originalText;
