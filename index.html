@@ -23,12 +23,15 @@
         body {
             background-color: #f5f5f5;
             color: #333;
+            height: 100vh;
+            overflow: hidden;
         }
         
         .view {
             display: none;
             padding: 20px;
-            min-height: calc(100vh - 70px);
+            height: calc(100vh - 70px);
+            overflow-y: auto;
         }
         
         .active {
@@ -44,6 +47,11 @@
             justify-content: space-between;
             align-items: center;
             height: 70px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
         
         nav {
@@ -63,6 +71,12 @@
         
         nav button:hover {
             background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Contenido principal */
+        #mainView {
+            margin-top: 70px;
+            height: calc(100vh - 70px);
         }
         
         /* Formularios */
@@ -138,8 +152,16 @@
         
         /* Login */
         #loginView {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+        
+        #loginView .form-container {
             max-width: 400px;
-            margin: 50px auto;
+            margin: 0 auto;
             background: white;
             padding: 30px;
             border-radius: 8px;
@@ -178,6 +200,10 @@
             width: 100%;
             border-collapse: collapse;
             margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         th, td {
@@ -247,27 +273,34 @@
             color: #999;
             font-size: 14px;
         }
+        
+        h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
     <!-- Vista de Login -->
     <div id="loginView" class="view active">
-        <h2 style="text-align: center; margin-bottom: 20px;">Sistema de Gestión - Fuerza Aérea</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Correo electrónico</label>
-                <input type="email" id="email" required value="david_toro@lsaf.gov.us">
+        <div class="form-container">
+            <h2 style="text-align: center; margin-bottom: 20px;">Sistema de Gestión - Fuerza Aérea</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" required value="david_toro@lsaf.gov.us">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" required value="12345">
+                </div>
+                <button type="submit" style="width: 100%;" id="loginButton">Iniciar Sesión</button>
+                <div id="loginError" class="error" style="display: none;"></div>
+            </form>
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="toggleDebug()" style="background: #666; font-size: 12px;">Mostrar información de depuración</button>
+                <div id="debugInfo" class="debug-info"></div>
             </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" required value="12345">
-            </div>
-            <button type="submit" style="width: 100%;" id="loginButton">Iniciar Sesión</button>
-            <div id="loginError" class="error" style="display: none;"></div>
-        </form>
-        <div style="margin-top: 20px; text-align: center;">
-            <button onclick="toggleDebug()" style="background: #666; font-size: 12px;">Mostrar información de depuración</button>
-            <div id="debugInfo" class="debug-info"></div>
         </div>
     </div>
 
@@ -291,7 +324,7 @@
             <h2>Gestión de Pilotos</h2>
             <button onclick="showAddPilotForm()">Agregar Piloto</button>
             <div class="card-grid" id="pilotosList">
-                <!-- Los pilotos se cargarán aquí dinámicamente -->
+                <p>Cargando pilotos...</p>
             </div>
         </div>
 
@@ -300,7 +333,7 @@
             <h2>Gestión de Aeronaves</h2>
             <button onclick="showAddAircraftForm()">Agregar Aeronave</button>
             <div class="card-grid" id="aeronavesList">
-                <!-- Las aeronaves se cargarán aquí dinámicamente -->
+                <p>Cargando aeronaves...</p>
             </div>
         </div>
 
@@ -309,7 +342,7 @@
             <h2>Libros de Vuelo</h2>
             <button onclick="showAddFlightLogForm()">Agregar Libro de Vuelo</button>
             <div id="flightLogsList">
-                <!-- Los libros de vuelo se cargarán aquí dinámicamente -->
+                <p>Cargando libros de vuelo...</p>
             </div>
         </div>
 
@@ -318,21 +351,26 @@
             <h2>Solicitudes de Certificación</h2>
             <button onclick="showAddRequestForm()">Solicitar Certificación</button>
             <div id="requestsList">
-                <!-- Las solicitudes se cargarán aquí dinámicamente -->
+                <p>Cargando solicitudes...</p>
             </div>
         </div>
 
         <!-- Vista de Resumen -->
         <div id="resumenView" class="view">
             <h2>Resumen de la Fuerza Aérea</h2>
-            <div id="leadershipInfo">
-                <!-- Información de liderazgo -->
-            </div>
-            <div id="missionVision">
-                <!-- Misión y visión -->
-            </div>
-            <div id="flightTimesSummary">
-                <!-- Resumen de tiempos de vuelo -->
+            <div class="card-grid">
+                <div id="leadershipInfo" class="card">
+                    <h3>Liderazgo</h3>
+                    <p>Cargando información de liderazgo...</p>
+                </div>
+                <div id="missionVision" class="card">
+                    <h3>Misión y Visión</h3>
+                    <p>Cargando misión y visión...</p>
+                </div>
+                <div id="flightTimesSummary" class="card">
+                    <h3>Tiempos de Vuelo</h3>
+                    <p>Cargando tiempos de vuelo...</p>
+                </div>
             </div>
         </div>
 
@@ -341,7 +379,7 @@
             <h2>Rangos de la Fuerza Aérea</h2>
             <button onclick="showAddRankForm()">Agregar Rango</button>
             <div class="card-grid" id="ranksList">
-                <!-- Los rangos se cargarán aquí dinámicamente -->
+                <p>Cargando rangos...</p>
             </div>
         </div>
     </div>
@@ -434,7 +472,7 @@
             });
         }
         
-        // Mostrar u ocultar vistas
+        // Mostrar u ocultar vistas - VERSIÓN CORREGIDA
         function showView(viewId) {
             console.log("Intentando mostrar vista:", viewId);
             
@@ -448,6 +486,11 @@
             if (targetView) {
                 targetView.classList.add('active');
                 console.log("Vista mostrada correctamente:", viewId);
+                
+                // Si es una vista dentro de mainView, asegurarse de que mainView esté visible
+                if (viewId !== 'loginView' && viewId !== 'mainView') {
+                    document.getElementById('mainView').classList.add('active');
+                }
             } else {
                 console.error("No se encontró la vista:", viewId);
             }
@@ -520,10 +563,15 @@
                 if (result.success) {
                     currentUser = result.user;
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    
+                    // Mostrar la vista principal y luego la de pilotos
                     showView('mainView');
-                    // Mostrar la vista de pilotos por defecto
                     showView('pilotosView');
-                    await loadAllData();
+                    
+                    // Cargar datos en segundo plano
+                    setTimeout(() => {
+                        loadAllData();
+                    }, 100);
                 } else {
                     showLoginError('Error: ' + result.message);
                 }
@@ -594,10 +642,10 @@
                                 pilot.foto : createPlaceholderImage('Sin foto');
                                 
                             pilotCard.innerHTML = `
-                                <h3>${pilot.nombre}</h3>
+                                <h3>${pilot.nombre || 'Nombre no disponible'}</h3>
                                 <img src="${photoUrl}" alt="Foto de ${pilot.nombre}" onerror="this.src='${createPlaceholderImage('Error al cargar')}'">
-                                <p>Rango: ${pilot.rango}</p>
-                                <p>NUIM: ${pilot.nuim}</p>
+                                <p><strong>Rango:</strong> ${pilot.rango || 'No especificado'}</p>
+                                <p><strong>NUIM:</strong> ${pilot.nuim || 'No especificado'}</p>
                                 <button onclick="showPilotDetail('${pilot.correo}')">Ver Detalles</button>
                             `;
                             pilotsList.appendChild(pilotCard);
@@ -634,8 +682,8 @@
                                 aircraft.foto : createPlaceholderImage('Sin foto');
                                 
                             aircraftCard.innerHTML = `
-                                <h3>${aircraft.callsign}</h3>
-                                <p>Modelo: ${aircraft.modelo}</p>
+                                <h3>${aircraft.callsign || 'Callsign no disponible'}</h3>
+                                <p><strong>Modelo:</strong> ${aircraft.modelo || 'No especificado'}</p>
                                 <img src="${photoUrl}" alt="Foto de ${aircraft.callsign}" onerror="this.src='${createPlaceholderImage('Error al cargar')}'">
                             `;
                             aircraftsList.appendChild(aircraftCard);
@@ -680,12 +728,12 @@
                             <tbody>
                                 ${result.data.map(log => `
                                     <tr>
-                                        <td>${log.libro}</td>
-                                        <td>${log.piloto}</td>
-                                        <td>${log.aeronave}</td>
-                                        <td>${log.hora_despegue}</td>
-                                        <td>${log.hora_aterrizaje}</td>
-                                        <td>${log.tiempo_total}</td>
+                                        <td>${log.libro || 'N/A'}</td>
+                                        <td>${log.piloto || 'N/A'}</td>
+                                        <td>${log.aeronave || 'N/A'}</td>
+                                        <td>${log.hora_despegue || 'N/A'}</td>
+                                        <td>${log.hora_aterrizaje || 'N/A'}</td>
+                                        <td>${log.tiempo_total || 'N/A'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -730,11 +778,11 @@
                             <tbody>
                                 ${result.data.map(req => `
                                     <tr>
-                                        <td>${req.solicitud}</td>
-                                        <td>${req.piloto}</td>
-                                        <td>${req.aeronave}</td>
-                                        <td>${req.fecha}</td>
-                                        <td>${req.disponibilidad}</td>
+                                        <td>${req.solicitud || 'N/A'}</td>
+                                        <td>${req.piloto || 'N/A'}</td>
+                                        <td>${req.aeronave || 'N/A'}</td>
+                                        <td>${req.fecha || 'N/A'}</td>
+                                        <td>${req.disponibilidad || 'N/A'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -772,9 +820,9 @@
                                 rank.foto : createPlaceholderImage('Sin insignia');
                                 
                             rankCard.innerHTML = `
-                                <h3>${rank.nombre}</h3>
-                                <p>Abreviación: ${rank.abreviacion}</p>
-                                <p>Escalafón: ${rank.escalafon}</p>
+                                <h3>${rank.nombre || 'Nombre no disponible'}</h3>
+                                <p><strong>Abreviación:</strong> ${rank.abreviacion || 'No especificada'}</p>
+                                <p><strong>Escalafón:</strong> ${rank.escalafon || 'No especificado'}</p>
                                 <img src="${photoUrl}" alt="Insignia de ${rank.nombre}" onerror="this.src='${createPlaceholderImage('Error al cargar')}'">
                             `;
                             ranksList.appendChild(rankCard);
@@ -820,59 +868,32 @@
                     
                     if (leadershipInfo) {
                         leadershipInfo.innerHTML = `
-                            <div class="card">
-                                <h3>Liderazgo</h3>
-                                <p>Líder: ${leader.nombre || 'No especificado'}</p>
-                                <p>Fecha de asunción: ${leader.fecha_asuncion || 'No especificada'}</p>
-                                <img src="${leaderPhoto}" alt="Foto del líder" onerror="this.src='${createPlaceholderImage('Error al cargar')}'" style="height: 100px; object-fit: cover;">
-                            </div>
+                            <h3>Liderazgo</h3>
+                            <p><strong>Líder:</strong> ${leader.nombre || 'No especificado'}</p>
+                            <p><strong>Fecha de asunción:</strong> ${leader.fecha_asuncion || 'No especificada'}</p>
+                            <img src="${leaderPhoto}" alt="Foto del líder" onerror="this.src='${createPlaceholderImage('Error al cargar')}'" style="height: 100px; object-fit: cover;">
                         `;
                     }
                     
                     if (missionVision) {
                         missionVision.innerHTML = `
-                            <div class="card">
-                                <h3>Misión y Visión</h3>
-                                <p><strong>Misión:</strong> ${mission}</p>
-                                <p><strong>Visión:</strong> ${vision}</p>
-                            </div>
+                            <h3>Misión y Visión</h3>
+                            <p><strong>Misión:</strong> ${mission}</p>
+                            <p><strong>Visión:</strong> ${vision}</p>
                         `;
                     }
                     
                     if (flightTimesSummary) {
                         flightTimesSummary.innerHTML = `
-                            <div class="card">
-                                <h3>Tiempos de Vuelo Totales</h3>
-                                <p>Total de horas voladas: ${totalTime} horas</p>
-                            </div>
+                            <h3>Tiempos de Vuelo Totales</h3>
+                            <p>Total de horas voladas: ${totalTime} horas</p>
                         `;
                     }
                 } else {
                     console.error('Error al cargar resumen:', result.message);
-                    // Mostrar mensaje de error en las secciones correspondientes
-                    const errorHtml = '<div class="card"><p>Error al cargar el resumen: ' + result.message + '</p></div>';
-                    if (document.getElementById('leadershipInfo')) {
-                        document.getElementById('leadershipInfo').innerHTML = errorHtml;
-                    }
-                    if (document.getElementById('missionVision')) {
-                        document.getElementById('missionVision').innerHTML = errorHtml;
-                    }
-                    if (document.getElementById('flightTimesSummary')) {
-                        document.getElementById('flightTimesSummary').innerHTML = errorHtml;
-                    }
                 }
             } catch (error) {
                 console.error('Error loading summary:', error);
-                const errorHtml = '<div class="card"><p>Error al cargar el resumen: ' + error.message + '</p></div>';
-                if (document.getElementById('leadershipInfo')) {
-                    document.getElementById('leadershipInfo').innerHTML = errorHtml;
-                }
-                if (document.getElementById('missionVision')) {
-                    document.getElementById('missionVision').innerHTML = errorHtml;
-                }
-                if (document.getElementById('flightTimesSummary')) {
-                    document.getElementById('flightTimesSummary').innerHTML = errorHtml;
-                }
             }
         }
 
@@ -887,7 +908,9 @@
                 currentUser = JSON.parse(savedUser);
                 showView('mainView');
                 showView('pilotosView'); // Mostrar pilotos por defecto
-                loadAllData();
+                setTimeout(() => {
+                    loadAllData();
+                }, 100);
             }
             
             // Agregar evento para cerrar modal al hacer clic fuera
