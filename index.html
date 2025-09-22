@@ -182,6 +182,16 @@
         tr:hover {
             background-color: #f5f5f5;
         }
+        
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -278,17 +288,41 @@
 
     <!-- Formularios modales (ocultos inicialmente) -->
     <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-        <div id="modalContent" style="background: white; width: 90%; max-width: 600px; margin: 50px auto; padding: 20px; border-radius: 8px;">
+        <div id="modalContent" style="background: white; width: 90%; max-width: 600px; margin: 50px auto; padding: 20px; border-radius: 8px; max-height: 90vh; overflow-y: auto;">
             <!-- El contenido del modal se cargará dinámicamente -->
         </div>
     </div>
 
     <script>
-        // URL de tu Google Apps Script (debes reemplazarla con la tuya)
+        // URL de tu Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKwSG4WlRuZEYq4wHB87Lw2pfWJuPdlKxmXj4ITBSXPjwTLgkGIe7iNSKW8p3d82K79w/exec';
         
         // Datos del usuario actual
         let currentUser = null;
+        
+        // Función para realizar solicitudes con manejo de CORS
+        async function makeRequest(data) {
+            try {
+                // Convertir el objeto data a parámetros de URL para una solicitud GET
+                const params = new URLSearchParams();
+                for (const key in data) {
+                    params.append(key, data[key]);
+                }
+                
+                // Hacer la solicitud a través de un proxy CORS si es necesario
+                const response = await fetch(`${SCRIPT_URL}?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error en la solicitud:', error);
+                throw error;
+            }
+        }
         
         // Mostrar u ocultar vistas
         function showView(viewId) {
@@ -301,6 +335,7 @@
         // Cerrar sesión
         function logout() {
             currentUser = null;
+            localStorage.removeItem('currentUser');
             showView('loginView');
         }
         
@@ -312,6 +347,7 @@
         
         // Ocultar modal
         function hideModal() {
+            document.getElementById('modalContent').innerHTML = '';
             document.getElementById('modalOverlay').style.display = 'none';
         }
         
@@ -322,22 +358,15 @@
             const password = document.getElementById('password').value;
             
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'login',
-                        email: email,
-                        password: password
-                    })
+                const result = await makeRequest({
+                    action: 'login',
+                    email: email,
+                    password: password
                 });
-                
-                const result = await response.json();
                 
                 if (result.success) {
                     currentUser = result.user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     showView('mainView');
                     loadAllData();
                 } else {
@@ -361,41 +390,232 @@
         // Cargar pilotos
         async function loadPilots() {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'getPilots'
-                    })
+                const result = await makeRequest({
+                    action: 'getPilots'
                 });
-                
-                const result = await response.json();
                 
                 if (result.success) {
                     const pilotsList = document.getElementById('pilotosList');
                     pilotsList.innerHTML = '';
                     
-                    result.data.forEach(pilot => {
-                        const pilotCard = document.createElement('div');
-                        pilotCard.className = 'card';
-                        pilotCard.innerHTML = `
-                            <h3>${pilot.nombre}</h3>
-                            <img src="${pilot.foto || 'placeholder.jpg'}" alt="Foto de ${pilot.nombre}">
-                            <p>Rango: ${pilot.rango}</p>
-                            <button onclick="showPilotDetail('${pilot.correo}')">Ver Detalles</button>
-                        `;
-                        pilotsList.appendChild(pilotCard);
-                    });
+                    if (result.data && result.data.length > 0) {
+                        result.data.forEach(pilot => {
+                            const pilotCard = document.createElement('div');
+                            pilotCard.className = 'card';
+                            pilotCard.innerHTML = `
+                                <h3>${pilot.nombre}</h3>
+                                <img src="${pilot.foto || 'https://via.placeholder.com/150'}" alt="Foto de ${pilot.nombre}" style="height: 100px; object-fit: cover;">
+                                <p>Rango: ${pilot.rango}</p>
+                                <button onclick="showPilotDetail('${pilot.correo}')">Ver Detalles</button>
+                            `;
+                            pilotsList.appendChild(pilotCard);
+                        });
+                    } else {
+                        pilotsList.innerHTML = '<p>No hay pilotos registrados</p>';
+                    }
+                } else {
+                    console.error('Error al cargar pilotos:', result.message);
                 }
             } catch (error) {
                 console.error('Error loading pilots:', error);
             }
         }
         
-        // Las funciones restantes (loadAircrafts, loadFlightLogs, etc.) siguen un patrón similar
-        // Implementaré las más críticas a continuación
+        // Cargar aeronaves
+        async function loadAircrafts() {
+            try {
+                const result = await makeRequest({
+                    action: 'getAircrafts'
+                });
+                
+                if (result.success) {
+                    const aircraftsList = document.getElementById('aeronavesList');
+                    aircraftsList.innerHTML = '';
+                    
+                    if (result.data && result.data.length > 0) {
+                        result.data.forEach(aircraft => {
+                            const aircraftCard = document.createElement('div');
+                            aircraftCard.className = 'card';
+                            aircraftCard.innerHTML = `
+                                <h3>${aircraft.callsign}</h3>
+                                <p>Modelo: ${aircraft.modelo}</p>
+                                <img src="${aircraft.foto || 'https://via.placeholder.com/150'}" alt="Foto de ${aircraft.callsign}" style="height: 100px; object-fit: cover;">
+                            `;
+                            aircraftsList.appendChild(aircraftCard);
+                        });
+                    } else {
+                        aircraftsList.innerHTML = '<p>No hay aeronaves registradas</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading aircrafts:', error);
+            }
+        }
+        
+        // Cargar libros de vuelo
+        async function loadFlightLogs() {
+            try {
+                const result = await makeRequest({
+                    action: 'getFlightLogs'
+                });
+                
+                if (result.success) {
+                    const flightLogsList = document.getElementById('flightLogsList');
+                    flightLogsList.innerHTML = '';
+                    
+                    if (result.data && result.data.length > 0) {
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>Libro</th>
+                                    <th>Piloto</th>
+                                    <th>Aeronave</th>
+                                    <th>Hora Despegue</th>
+                                    <th>Hora Aterrizaje</th>
+                                    <th>Tiempo Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.data.map(log => `
+                                    <tr>
+                                        <td>${log.libro}</td>
+                                        <td>${log.piloto}</td>
+                                        <td>${log.aeronave}</td>
+                                        <td>${log.hora_despegue}</td>
+                                        <td>${log.hora_aterrizaje}</td>
+                                        <td>${log.tiempo_total}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        `;
+                        flightLogsList.appendChild(table);
+                    } else {
+                        flightLogsList.innerHTML = '<p>No hay libros de vuelo registrados</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading flight logs:', error);
+            }
+        }
+        
+        // Cargar solicitudes
+        async function loadRequests() {
+            try {
+                const result = await makeRequest({
+                    action: 'getRequests'
+                });
+                
+                if (result.success) {
+                    const requestsList = document.getElementById('requestsList');
+                    requestsList.innerHTML = '';
+                    
+                    if (result.data && result.data.length > 0) {
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>Solicitud</th>
+                                    <th>Piloto</th>
+                                    <th>Aeronave</th>
+                                    <th>Fecha</th>
+                                    <th>Disponibilidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.data.map(req => `
+                                    <tr>
+                                        <td>${req.solicitud}</td>
+                                        <td>${req.piloto}</td>
+                                        <td>${req.aeronave}</td>
+                                        <td>${req.fecha}</td>
+                                        <td>${req.disponibilidad}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        `;
+                        requestsList.appendChild(table);
+                    } else {
+                        requestsList.innerHTML = '<p>No hay solicitudes registradas</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading requests:', error);
+            }
+        }
+        
+        // Cargar rangos
+        async function loadRanks() {
+            try {
+                const result = await makeRequest({
+                    action: 'getRanks'
+                });
+                
+                if (result.success) {
+                    const ranksList = document.getElementById('ranksList');
+                    ranksList.innerHTML = '';
+                    
+                    if (result.data && result.data.length > 0) {
+                        result.data.forEach(rank => {
+                            const rankCard = document.createElement('div');
+                            rankCard.className = 'card';
+                            rankCard.innerHTML = `
+                                <h3>${rank.nombre}</h3>
+                                <p>Abreviación: ${rank.abreviacion}</p>
+                                <p>Escalafón: ${rank.escalafon}</p>
+                                <img src="${rank.foto || 'https://via.placeholder.com/150'}" alt="Insignia de ${rank.nombre}" style="height: 100px; object-fit: cover;">
+                            `;
+                            ranksList.appendChild(rankCard);
+                        });
+                    } else {
+                        ranksList.innerHTML = '<p>No hay rangos registrados</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading ranks:', error);
+            }
+        }
+        
+        // Cargar resumen
+        async function loadSummary() {
+            try {
+                const result = await makeRequest({
+                    action: 'getSummary'
+                });
+                
+                if (result.success) {
+                    const leadershipInfo = document.getElementById('leadershipInfo');
+                    const missionVision = document.getElementById('missionVision');
+                    const flightTimesSummary = document.getElementById('flightTimesSummary');
+                    
+                    leadershipInfo.innerHTML = `
+                        <div class="card">
+                            <h3>Liderazgo</h3>
+                            <p>Líder: ${result.data.lider.nombre}</p>
+                            <p>Fecha de asunción: ${result.data.lider.fecha_asuncion}</p>
+                            <img src="${result.data.lider.foto || 'https://via.placeholder.com/150'}" alt="Foto del líder" style="height: 100px; object-fit: cover;">
+                        </div>
+                    `;
+                    
+                    missionVision.innerHTML = `
+                        <div class="card">
+                            <h3>Misión y Visión</h3>
+                            <p><strong>Misión:</strong> ${result.data.mision}</p>
+                            <p><strong>Visión:</strong> ${result.data.vision}</p>
+                        </div>
+                    `;
+                    
+                    flightTimesSummary.innerHTML = `
+                        <div class="card">
+                            <h3>Tiempos de Vuelo Totales</h3>
+                            <p>Total de horas voladas: ${result.data.tiempos_totales} horas</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading summary:', error);
+            }
+        }
 
         // Mostrar formulario para agregar piloto
         function showAddPilotForm() {
@@ -416,9 +636,7 @@
                     </div>
                     <div class="form-group">
                         <label for="newPilotRank">Rango</label>
-                        <select id="newPilotRank" required>
-                            <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
-                        </select>
+                        <input type="text" id="newPilotRank" required>
                     </div>
                     <div class="form-group">
                         <label for="newPilotNUIM">NUIM</label>
@@ -448,37 +666,29 @@
             `;
             
             showModal(formHtml);
-            loadRanksForSelect('newPilotRank');
         }
         
         // Agregar piloto
         async function addPilot(event) {
             event.preventDefault();
             // Lógica para agregar piloto a la base de datos
+            alert('Función de agregar piloto en desarrollo');
         }
         
         // Mostrar detalles del piloto
         async function showPilotDetail(email) {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'getPilotDetail',
-                        email: email
-                    })
+                const result = await makeRequest({
+                    action: 'getPilotDetail',
+                    email: email
                 });
-                
-                const result = await response.json();
                 
                 if (result.success) {
                     const pilot = result.data;
                     let detailHtml = `
                         <h2>Perfil de ${pilot.nombre}</h2>
                         <div class="profile-header">
-                            <img src="${pilot.foto || 'placeholder.jpg'}" alt="Foto de ${pilot.nombre}" class="profile-img">
+                            <img src="${pilot.foto || 'https://via.placeholder.com/150'}" alt="Foto de ${pilot.nombre}" class="profile-img">
                             <div class="profile-info">
                                 <p><strong>Rango:</strong> ${pilot.rango}</p>
                                 <p><strong>NUIM:</strong> ${pilot.nuim}</p>
@@ -553,7 +763,137 @@
             }
         }
         
-        // Implementar funciones similares para aeronaves, libros de vuelo, etc.
+        // Mostrar formulario para agregar aeronave
+        function showAddAircraftForm() {
+            const formHtml = `
+                <h2>Agregar Nueva Aeronave</h2>
+                <form onsubmit="addAircraft(event)">
+                    <div class="form-group">
+                        <label for="newAircraftCallsign">Callsign</label>
+                        <input type="text" id="newAircraftCallsign" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newAircraftModel">Modelo</label>
+                        <input type="text" id="newAircraftModel" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newAircraftPhoto">URL de la foto</label>
+                        <input type="url" id="newAircraftPhoto">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit">Agregar</button>
+                        <button type="button" onclick="hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `;
+            
+            showModal(formHtml);
+        }
+        
+        // Mostrar formulario para agregar libro de vuelo
+        function showAddFlightLogForm() {
+            const formHtml = `
+                <h2>Agregar Libro de Vuelo</h2>
+                <form onsubmit="addFlightLog(event)">
+                    <div class="form-group">
+                        <label for="newFlightLogAircraft">Aeronave</label>
+                        <select id="newFlightLogAircraft" required>
+                            <option value="">Seleccionar aeronave</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newFlightLogTakeoff">Hora de Despegue</label>
+                        <input type="datetime-local" id="newFlightLogTakeoff" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newFlightLogLanding">Hora de Aterrizaje</label>
+                        <input type="datetime-local" id="newFlightLogLanding" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newFlightLogRoute">Ruta</label>
+                        <input type="text" id="newFlightLogRoute" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newFlightLogReason">Motivo</label>
+                        <textarea id="newFlightLogReason" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="newFlightLogObservations">Observaciones</label>
+                        <textarea id="newFlightLogObservations"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit">Agregar</button>
+                        <button type="button" onclick="hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `;
+            
+            showModal(formHtml);
+        }
+        
+        // Mostrar formulario para solicitar certificación
+        function showAddRequestForm() {
+            const formHtml = `
+                <h2>Solicitar Certificación</h2>
+                <form onsubmit="addRequest(event)">
+                    <div class="form-group">
+                        <label for="newRequestAircraft">Aeronave</label>
+                        <select id="newRequestAircraft" required>
+                            <option value="">Seleccionar aeronave</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newRequestAvailability">Disponibilidad</label>
+                        <textarea id="newRequestAvailability" required placeholder="Ejemplo: Lunes a Viernes de 14:00 a 18:00"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="newRequestAgreement" required>
+                            He leído y acepto la carta de compromiso
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit">Enviar Solicitud</button>
+                        <button type="button" onclick="hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `;
+            
+            showModal(formHtml);
+        }
+        
+        // Mostrar formulario para agregar rango
+        function showAddRankForm() {
+            const formHtml = `
+                <h2>Agregar Rango</h2>
+                <form onsubmit="addRank(event)">
+                    <div class="form-group">
+                        <label for="newRankName">Nombre del rango</label>
+                        <input type="text" id="newRankName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newRankAbbreviation">Abreviación</label>
+                        <input type="text" id="newRankAbbreviation" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newRankLevel">Escalafón</label>
+                        <input type="number" id="newRankLevel" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="newRankPhoto">URL de la insignia</label>
+                        <input type="url" id="newRankPhoto">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit">Agregar</button>
+                        <button type="button" onclick="hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `;
+            
+            showModal(formHtml);
+        }
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
