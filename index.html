@@ -5,264 +5,1157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema LSAF - Fuerza Aérea</title>
     <style>
-        /* Estilos mínimos pero funcionales */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-form { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        input, select, button { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #00308F; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #002244; }
-        .app-container { display: none; }
-        .nav-tabs { background: #5072A7; display: flex; padding: 0; }
-        .nav-tab { padding: 1rem; color: white; cursor: pointer; }
-        .nav-tab.active { background: white; color: #00308F; }
-        .page { display: none; padding: 1rem; background: white; margin-top: 1rem; border-radius: 4px; }
-        .page.active { display: block; }
-        .card { background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .error { color: red; }
-        .success { color: green; }
+        :root {
+            --airforce-blue: #00308F;
+            --airforce-light: #5072A7;
+            --airforce-gold: #B8860B;
+            --airforce-white: #FFFFFF;
+            --airforce-gray: #F0F0F0;
+            --airforce-dark: #002244;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: var(--airforce-gray);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--airforce-blue) 0%, var(--airforce-dark) 100%);
+            padding: 20px;
+        }
+        
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-form h1 {
+            color: var(--airforce-blue);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--airforce-blue);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--airforce-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background: var(--airforce-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-success { background: #28a745; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-danger { background: #dc3545; }
+        .btn-sm { padding: 8px 16px; font-size: 0.9rem; }
+        
+        .app-container {
+            display: none;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: var(--airforce-blue);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: var(--airforce-light);
+            overflow-x: auto;
+            padding: 0;
+        }
+        
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        
+        .nav-tab.active {
+            background: white;
+            color: var(--airforce-blue);
+            border-bottom-color: var(--airforce-gold);
+        }
+        
+        .content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-left: 4px solid var(--airforce-blue);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-header h2 {
+            color: var(--airforce-blue);
+            margin: 0;
+        }
+        
+        .piloto-item {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s;
+            background: white;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .piloto-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .piloto-insignia {
+            width: 60px;
+            height: 60px;
+            margin-right: 1.5rem;
+            background: linear-gradient(135deg, var(--airforce-blue), var(--airforce-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .piloto-info {
+            flex: 1;
+        }
+        
+        .piloto-nombre {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .piloto-nuim {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .piloto-rango {
+            font-size: 1rem;
+            color: var(--airforce-blue);
+            font-weight: 600;
+        }
+        
+        .piloto-estado {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+        
+        .estado-activo {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .estado-archivado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .grid-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border-top: 4px solid var(--airforce-blue);
+        }
+        
+        .grid-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .grid-item h3 {
+            color: var(--airforce-blue);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-header h2 {
+            color: var(--airforce-blue);
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: var(--airforce-blue);
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -0.5rem;
+        }
+        
+        .form-col {
+            flex: 1;
+            padding: 0 0.5rem;
+            min-width: 250px;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #f8d7da;
+            border-radius: 4px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .success-message {
+            color: #28a745;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #d4edda;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--airforce-blue), var(--airforce-light));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .header { padding: 1rem; flex-direction: column; gap: 1rem; }
+            .content { padding: 1rem; }
+            .nav-tabs { flex-wrap: wrap; }
+            .nav-tab { flex: 1; min-width: 120px; text-align: center; }
+            .form-row { flex-direction: column; }
+            .form-col { min-width: 100%; }
+            .action-buttons { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
+    <!-- LOGIN -->
     <div class="login-container" id="loginPage">
         <div class="login-form">
-            <h2>Sistema LSAF - Login</h2>
+            <h1>🛩️ Sistema LSAF</h1>
             <form id="loginForm">
                 <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" id="email" value="david_toro@lsaf.gov.us" required>
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" required value="david_toro@lsaf.gov.us">
                 </div>
                 <div class="form-group">
-                    <label>Contraseña:</label>
-                    <input type="password" id="password" required>
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" required value="12345">
                 </div>
-                <button type="submit">Iniciar Sesión</button>
-                <div id="loginMessage"></div>
+                <button type="submit" class="btn btn-block">🎯 Iniciar sesión</button>
+                <div id="loginMessage" style="margin-top: 1rem;"></div>
             </form>
-            <p><strong>Nota:</strong> Usa las credenciales de tu base de datos real</p>
         </div>
     </div>
-
+    
+    <!-- APLICACIÓN PRINCIPAL -->
     <div class="app-container" id="appContainer">
-        <header style="background: #00308F; color: white; padding: 1rem;">
-            <h1>Fuerza Aérea LSAF</h1>
+        <header class="header">
+            <h1>🛩️ Fuerza Aérea LSAF</h1>
             <div>
                 <span id="userName">Usuario</span>
-                <button onclick="logout()" style="margin-left: 1rem;">Cerrar sesión</button>
+                <button class="btn" id="logoutBtn">🚪 Cerrar sesión</button>
             </div>
         </header>
         
         <nav class="nav-tabs">
-            <div class="nav-tab active" onclick="showPage('pilotos')">Pilotos</div>
-            <div class="nav-tab" onclick="showPage('aeronaves')">Aeronaves</div>
+            <div class="nav-tab active" data-page="pilotos">👨‍✈️ Pilotos</div>
+            <div class="nav-tab" data-page="aeronaves">✈️ Aeronaves</div>
+            <div class="nav-tab" data-page="libros-vuelo">📖 Libros de Vuelo</div>
+            <div class="nav-tab" data-page="solicitudes">📋 Solicitudes</div>
+            <div class="nav-tab" data-page="resumen">📊 Resumen</div>
+            <div class="nav-tab" data-page="rangos">⭐ Rangos</div>
         </nav>
         
-        <div id="pilotosPage" class="page active">
-            <div class="card">
-                <h2>Gestión de Pilotos</h2>
-                <button onclick="showPilotoForm()">Agregar Piloto</button>
-                <div id="pilotosList">Cargando...</div>
+        <main class="content">
+            <!-- PÁGINAS -->
+            <div class="page active" id="pilotosPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>👨‍✈️ Gestión de Pilotos</h2>
+                        <button class="btn" id="addPilotoBtn">➕ Agregar Piloto</button>
+                    </div>
+                    <div id="pilotosList" class="loading">🔄 Cargando pilotos...</div>
+                </div>
             </div>
-        </div>
-        
-        <div id="aeronavesPage" class="page">
-            <div class="card">
-                <h2>Gestión de Aeronaves</h2>
-                <div id="aeronavesList">Cargando...</div>
+            
+            <div class="page" id="aeronavesPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>✈️ Gestión de Aeronaves</h2>
+                        <button class="btn" id="addAeronaveBtn">➕ Agregar Aeronave</button>
+                    </div>
+                    <div id="aeronavesList" class="loading">🔄 Cargando aeronaves...</div>
+                </div>
             </div>
-        </div>
+            
+            <div class="page" id="librosVueloPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📖 Libros de Vuelo</h2>
+                        <button class="btn" id="addLibroVueloBtn">➕ Registrar Vuelo</button>
+                    </div>
+                    <div id="librosVueloList" class="loading">🔄 Cargando libros de vuelo...</div>
+                </div>
+            </div>
+            
+            <div class="page" id="solicitudesPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Solicitudes de Certificación</h2>
+                        <button class="btn" id="addSolicitudBtn">➕ Nueva Solicitud</button>
+                    </div>
+                    <div id="solicitudesList" class="loading">🔄 Cargando solicitudes...</div>
+                </div>
+            </div>
+            
+            <div class="page" id="resumenPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📊 Resumen General</h2>
+                    </div>
+                    <div id="resumenContent" class="loading">🔄 Cargando resumen...</div>
+                </div>
+            </div>
+            
+            <div class="page" id="rangosPage">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>⭐ Gestión de Rangos</h2>
+                        <button class="btn" id="addRangoBtn">➕ Agregar Rango</button>
+                    </div>
+                    <div id="rangosList" class="loading">🔄 Cargando rangos...</div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Modal para agregar/editar piloto -->
-    <div id="pilotoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
-        <div style="background: white; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px;">
-            <h3 id="modalTitle">Agregar Piloto</h3>
+    <!-- MODALES -->
+    <div class="modal" id="pilotoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="pilotoModalTitle">👨‍✈️ Agregar Piloto</h2>
+                <button class="close-modal">×</button>
+            </div>
             <form id="pilotoForm">
-                <input type="hidden" id="editNuim">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label>Nombre:</label>
-                        <input type="text" id="pilotoNombre" required>
+                <input type="hidden" id="pilotoNuimEdit">
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoNombre">Nombre completo *</label>
+                            <input type="text" id="pilotoNombre" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" id="pilotoEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label>NUIM:</label>
-                        <input type="text" id="pilotoNUIM" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Rol:</label>
-                        <select id="pilotoRol" required>
-                            <option value="PILOTO">PILOTO</option>
-                            <option value="INSTRUCTOR">INSTRUCTOR</option>
-                            <option value="ADMIN">ADMIN</option>
-                        </select>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoEmail">Email *</label>
+                            <input type="email" id="pilotoEmail" required>
+                        </div>
                     </div>
                 </div>
-                <div style="margin-top: 1rem;">
-                    <button type="submit">Guardar</button>
-                    <button type="button" onclick="hideModal()" style="background: #666;">Cancelar</button>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoNUIM">NUIM *</label>
+                            <input type="text" id="pilotoNUIM" required placeholder="10-291992">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoRango">Rango inicial *</label>
+                            <select id="pilotoRango" required>
+                                <option value="Cadete">Cadete</option>
+                                <option value="Teniente">Teniente</option>
+                                <option value="Capitán">Capitán</option>
+                                <option value="Mayor">Mayor</option>
+                                <option value="Teniente Coronel">Teniente Coronel</option>
+                                <option value="Coronel">Coronel</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div id="modalMessage"></div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoFechaIngreso">Fecha de ingreso *</label>
+                            <input type="date" id="pilotoFechaIngreso" required>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoRol">Rol *</label>
+                            <select id="pilotoRol" required>
+                                <option value="PILOTO">PILOTO</option>
+                                <option value="INSTRUCTOR">INSTRUCTOR</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoFechaNacimiento">Fecha de nacimiento</label>
+                            <input type="date" id="pilotoFechaNacimiento">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoTipoSangre">Tipo de sangre</label>
+                            <input type="text" id="pilotoTipoSangre" placeholder="O+">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoTelefono">Teléfono</label>
+                            <input type="tel" id="pilotoTelefono" placeholder="+593 XXX XXX XXX">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="pilotoNacionalidad">Nacionalidad *</label>
+                            <input type="text" id="pilotoNacionalidad" required placeholder="Ecuatoriana">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pilotoEstado">Estado *</label>
+                    <select id="pilotoEstado" required>
+                        <option value="ACTIVO">ACTIVO</option>
+                        <option value="ARCHIVADO">ARCHIVADO</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn">💾 Guardar Piloto</button>
+                    <button type="button" class="btn" id="cancelPilotoBtn" style="background: #666;">❌ Cancelar</button>
+                </div>
+                <div id="pilotoMessage"></div>
             </form>
         </div>
     </div>
 
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzZXQH3gmjtcZMmbDIzmfyAZTZ_zjSCQnInosFyoQj5VH0Gyx5rXW2bqwMOGfCF5ENDwA/exec';
-        let currentUser = null;
-        let pilotos = [];
+    <!-- Script completo continúa... -->
+        <!-- ... continúa desde la primera parte del HTML ... -->
 
-        // Login
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    <script>
+        // URL de tu Google Apps Script
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzZXQH3gmjtcZMmbDIzmfyAZTZ_zjSCQnInosFyoQj5VH0Gyx5rXW2bqwMOGfCF5ENDwA/exec';
+        
+        // Variables globales
+        let currentUser = null;
+        let appData = {
+            pilotos: [],
+            aeronaves: [],
+            librosVuelo: [],
+            solicitudes: [],
+            rangos: [],
+            lideres: []
+        };
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSession();
+            setupLoginEventListeners();
+        });
+        
+        function checkSession() {
+            const userSession = localStorage.getItem('lsaf_user');
+            if (userSession) {
+                currentUser = JSON.parse(userSession);
+                showApp();
+            }
+        }
+        
+        function setupLoginEventListeners() {
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+        }
+        
+        function setupAppEventListeners() {
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            
+            // Navegación
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const pageId = this.getAttribute('data-page');
+                    switchPage(pageId);
+                });
+            });
+            
+            // Botones de agregar
+            document.getElementById('addPilotoBtn').addEventListener('click', () => showPilotoModal('add'));
+            document.getElementById('addAeronaveBtn').addEventListener('click', () => showAeronaveModal('add'));
+            document.getElementById('addLibroVueloBtn').addEventListener('click', () => showLibroVueloModal('add'));
+            document.getElementById('addSolicitudBtn').addEventListener('click', () => showSolicitudModal('add'));
+            document.getElementById('addRangoBtn').addEventListener('click', () => showRangoModal('add'));
+            
+            // Botones de cancelar
+            document.getElementById('cancelPilotoBtn').addEventListener('click', () => hideModal('pilotoModal'));
+            
+            // Cerrar modales
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    hideModal(modal.id);
+                });
+            });
+            
+            // Formularios
+            document.getElementById('pilotoForm').addEventListener('submit', savePiloto);
+        }
+        
+        async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            showLoginMessage('Conectando...', 'info');
+            
             try {
-                const response = await fetch(`${API_URL}?action=login&email=${email}&password=${password}`);
+                const response = await fetch(`${API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
                 const data = await response.json();
                 
                 if (data.success) {
                     currentUser = data.user;
                     localStorage.setItem('lsaf_user', JSON.stringify(currentUser));
-                    showApp();
+                    showLoginMessage('¡Login exitoso!', 'success');
+                    setTimeout(() => showApp(), 1000);
                 } else {
-                    showMessage('loginMessage', data.error, 'error');
+                    showLoginMessage(data.error, 'error');
                 }
             } catch (error) {
-                showMessage('loginMessage', 'Error de conexión', 'error');
+                showLoginMessage('Error de conexión: ' + error.message, 'error');
             }
-        });
-
-        // Cargar datos al iniciar
-        if (localStorage.getItem('lsaf_user')) {
-            currentUser = JSON.parse(localStorage.getItem('lsaf_user'));
-            showApp();
         }
-
+        
+        function handleLogout() {
+            localStorage.removeItem('lsaf_user');
+            currentUser = null;
+            hideApp();
+        }
+        
+        function showLoginMessage(message, type) {
+            const messageDiv = document.getElementById('loginMessage');
+            if (messageDiv) {
+                messageDiv.textContent = message;
+                messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+                if (type === 'info') messageDiv.style.color = '#007bff';
+            }
+        }
+        
         function showApp() {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
             document.getElementById('userName').textContent = currentUser.nombre;
-            loadPilotos();
+            
+            setupAppEventListeners();
+            loadInitialData();
         }
-
-        function logout() {
-            localStorage.removeItem('lsaf_user');
-            location.reload();
+        
+        function hideApp() {
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginMessage').textContent = '';
         }
-
-        function showPage(page) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(page + 'Page').classList.add('active');
-            event.target.classList.add('active');
+        
+        function switchPage(pageId) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            
+            document.querySelector(`.nav-tab[data-page="${pageId}"]`).classList.add('active');
+            document.getElementById(`${pageId}Page`).classList.add('active');
+            
+            loadPageData(pageId);
         }
-
-        async function loadPilotos() {
+        
+        async function loadInitialData() {
             try {
-                const response = await fetch(`${API_URL}?action=getPilotos`);
-                const data = await response.json();
-                
-                if (data.error) throw new Error(data.error);
-                
-                pilotos = data.pilotos;
+                await Promise.all([
+                    loadPilotos(),
+                    loadAeronaves(),
+                    loadRangos()
+                ]);
                 displayPilotos();
             } catch (error) {
-                document.getElementById('pilotosList').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                console.error('Error cargando datos iniciales:', error);
             }
         }
-
+        
+        async function loadPageData(pageId) {
+            try {
+                switch(pageId) {
+                    case 'pilotos':
+                        await loadPilotos();
+                        displayPilotos();
+                        break;
+                    case 'aeronaves':
+                        await loadAeronaves();
+                        displayAeronaves();
+                        break;
+                    case 'libros-vuelo':
+                        await loadLibrosVuelo();
+                        displayLibrosVuelo();
+                        break;
+                    case 'solicitudes':
+                        await loadSolicitudes();
+                        displaySolicitudes();
+                        break;
+                    case 'resumen':
+                        await loadResumen();
+                        displayResumen();
+                        break;
+                    case 'rangos':
+                        await loadRangos();
+                        displayRangos();
+                        break;
+                }
+            } catch (error) {
+                console.error(`Error cargando ${pageId}:`, error);
+                document.getElementById(`${pageId}List`).innerHTML = `<p class="error-message">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function loadPilotos() {
+            const response = await fetch(`${API_URL}?action=getPilotos`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            appData.pilotos = data.pilotos || [];
+        }
+        
+        async function loadAeronaves() {
+            const response = await fetch(`${API_URL}?action=getAeronaves`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            appData.aeronaves = data.aeronaves || [];
+        }
+        
+        async function loadLibrosVuelo() {
+            const response = await fetch(`${API_URL}?action=getLibrosVuelo`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            appData.librosVuelo = data.libros || [];
+        }
+        
+        async function loadSolicitudes() {
+            const response = await fetch(`${API_URL}?action=getSolicitudes`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            appData.solicitudes = data.solicitudes || [];
+        }
+        
+        async function loadRangos() {
+            const response = await fetch(`${API_URL}?action=getRangos`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            appData.rangos = data.rangos || [];
+        }
+        
+        async function loadResumen() {
+            await Promise.all([
+                loadPilotos(),
+                loadAeronaves(),
+                loadLibrosVuelo(),
+                loadSolicitudes()
+            ]);
+        }
+        
         function displayPilotos() {
-            const list = document.getElementById('pilotosList');
-            list.innerHTML = '<h3>Lista de Pilotos</h3>';
-            
-            if (pilotos.length === 0) {
-                list.innerHTML += '<p>No hay pilotos registrados</p>';
+            const container = document.getElementById('pilotosList');
+            if (appData.pilotos.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay pilotos registrados</div>';
                 return;
             }
             
-            pilotos.forEach(piloto => {
-                list.innerHTML += `
-                    <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0; border-radius: 4px;">
-                        <strong>${piloto.nombre}</strong> - ${piloto.nuim} - ${piloto.rol}
-                        <button onclick="editPiloto('${piloto.nuim}')">Editar</button>
+            container.innerHTML = appData.pilotos.map(piloto => {
+                const estadoClass = piloto.estado === 'ARCHIVADO' ? 'estado-archivado' : 'estado-activo';
+                return `
+                    <div class="piloto-item">
+                        <div class="piloto-insignia">${piloto.rango ? piloto.rango.charAt(0) : 'P'}</div>
+                        <div class="piloto-info">
+                            <div class="piloto-nombre">${piloto.nombre}</div>
+                            <div class="piloto-nuim">${piloto.nuim}</div>
+                            <div class="piloto-rango">${piloto.rango} • <span class="piloto-estado ${estadoClass}">${piloto.estado}</span></div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm" onclick="viewPiloto('${piloto.nuim}')">👁️ Ver</button>
+                            <button class="btn btn-sm btn-warning" onclick="editPiloto('${piloto.nuim}')">✏️ Editar</button>
+                        </div>
                     </div>
                 `;
-            });
+            }).join('');
         }
-
-        function showPilotoForm() {
-            document.getElementById('modalTitle').textContent = 'Agregar Piloto';
-            document.getElementById('pilotoForm').reset();
-            document.getElementById('editNuim').value = '';
-            document.getElementById('pilotoModal').style.display = 'flex';
-        }
-
-        function editPiloto(nuim) {
-            const piloto = pilotos.find(p => p.nuim === nuim);
-            if (piloto) {
-                document.getElementById('modalTitle').textContent = 'Editar Piloto';
-                document.getElementById('pilotoNombre').value = piloto.nombre;
-                document.getElementById('pilotoEmail').value = piloto.correo;
-                document.getElementById('pilotoNUIM').value = piloto.nuim;
-                document.getElementById('pilotoRol').value = piloto.rol;
-                document.getElementById('editNuim').value = piloto.nuim;
-                document.getElementById('pilotoModal').style.display = 'flex';
+        
+        function displayAeronaves() {
+            const container = document.getElementById('aeronavesList');
+            if (appData.aeronaves.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay aeronaves registradas</div>';
+                return;
             }
+            
+            container.innerHTML = '<div class="grid-container">' + appData.aeronaves.map(aeronave => `
+                <div class="grid-item">
+                    <h3>${aeronave.callsign}</h3>
+                    <p><strong>Modelo:</strong> ${aeronave.modelo}</p>
+                    <p><strong>Certificada:</strong> ${aeronave.certificada}</p>
+                    <button class="btn btn-sm" onclick="viewAeronave('${aeronave.callsign}')">👁️ Ver</button>
+                </div>
+            `).join('') + '</div>';
         }
-
-        function hideModal() {
-            document.getElementById('pilotoModal').style.display = 'none';
+        
+        function displayLibrosVuelo() {
+            const container = document.getElementById('librosVueloList');
+            if (appData.librosVuelo.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay libros de vuelo registrados</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="grid-container">' + appData.librosVuelo.map(libro => `
+                <div class="grid-item">
+                    <h3>${libro.id_libro}</h3>
+                    <p><strong>Piloto:</strong> ${libro.piloto}</p>
+                    <p><strong>Aeronave:</strong> ${libro.aeronave}</p>
+                    <p><strong>Tiempo:</strong> ${libro.tiempo_total} horas</p>
+                    <button class="btn btn-sm" onclick="viewLibroVuelo('${libro.id_libro}')">👁️ Ver</button>
+                </div>
+            `).join('') + '</div>';
         }
-
-        document.getElementById('pilotoForm').addEventListener('submit', async function(e) {
+        
+        function displaySolicitudes() {
+            const container = document.getElementById('solicitudesList');
+            if (appData.solicitudes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay solicitudes pendientes</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="grid-container">' + appData.solicitudes.map(solicitud => `
+                <div class="grid-item">
+                    <h3>${solicitud.id_solicitud}</h3>
+                    <p><strong>Piloto:</strong> ${solicitud.piloto}</p>
+                    <p><strong>Aeronave:</strong> ${solicitud.aeronave}</p>
+                    <p><strong>Estado:</strong> ${solicitud.estado}</p>
+                    <button class="btn btn-sm" onclick="viewSolicitud('${solicitud.id_solicitud}')">👁️ Ver</button>
+                </div>
+            `).join('') + '</div>';
+        }
+        
+        function displayRangos() {
+            const container = document.getElementById('rangosList');
+            if (appData.rangos.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay rangos definidos</div>';
+                return;
+            }
+            
+            container.innerHTML = '<div class="grid-container">' + appData.rangos.map(rango => `
+                <div class="grid-item">
+                    <h3>${rango.nombre}</h3>
+                    <p><strong>Abreviación:</strong> ${rango.abreviacion}</p>
+                    <p><strong>Escalafón:</strong> ${rango.escalafon}</p>
+                    <button class="btn btn-sm" onclick="viewRango('${rango.nombre}')">👁️ Ver</button>
+                </div>
+            `).join('') + '</div>';
+        }
+        
+        function displayResumen() {
+            const container = document.getElementById('resumenContent');
+            const totalPilotos = appData.pilotos.length;
+            const totalAeronaves = appData.aeronaves.length;
+            const totalLibros = appData.librosVuelo.length;
+            const totalSolicitudes = appData.solicitudes.length;
+            
+            const tiempoTotal = appData.librosVuelo.reduce((total, libro) => total + parseFloat(libro.tiempo_total || 0), 0);
+            
+            container.innerHTML = `
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number">${totalPilotos}</div>
+                        <div class="stat-label">Pilotos Activos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalAeronaves}</div>
+                        <div class="stat-label">Aeronaves</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalLibros}</div>
+                        <div class="stat-label">Libros de Vuelo</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${totalSolicitudes}</div>
+                        <div class="stat-label">Solicitudes</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>📈 Tiempo Total de Vuelo</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: var(--airforce-blue); text-align: center;">
+                        ${tiempoTotal.toFixed(2)} horas
+                    </p>
+                </div>
+            `;
+        }
+        
+        function showPilotoModal(mode, piloto = null) {
+            const modal = document.getElementById('pilotoModal');
+            const title = document.getElementById('pilotoModalTitle');
+            const form = document.getElementById('pilotoForm');
+            
+            if (mode === 'add') {
+                title.textContent = '👨‍✈️ Agregar Piloto';
+                form.reset();
+                document.getElementById('pilotoNuimEdit').value = '';
+                document.getElementById('pilotoNUIM').readOnly = false;
+            } else if (mode === 'edit' && piloto) {
+                title.textContent = '✏️ Editar Piloto';
+                document.getElementById('pilotoNombre').value = piloto.nombre || '';
+                document.getElementById('pilotoEmail').value = piloto.correo || '';
+                document.getElementById('pilotoNUIM').value = piloto.nuim || '';
+                document.getElementById('pilotoRango').value = piloto.rango || 'Cadete';
+                document.getElementById('pilotoFechaIngreso').value = piloto.fecha_ingreso || '';
+                document.getElementById('pilotoRol').value = piloto.rol || 'PILOTO';
+                document.getElementById('pilotoEstado').value = piloto.estado || 'ACTIVO';
+                document.getElementById('pilotoFechaNacimiento').value = piloto.fecha_nacimiento || '';
+                document.getElementById('pilotoTipoSangre').value = piloto.tipo_sangre || '';
+                document.getElementById('pilotoTelefono').value = piloto.telefono || '';
+                document.getElementById('pilotoNacionalidad').value = piloto.nacionalidad || '';
+                document.getElementById('pilotoNuimEdit').value = piloto.nuim || '';
+                document.getElementById('pilotoNUIM').readOnly = true;
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        async function savePiloto(e) {
             e.preventDefault();
             
-            const isEdit = document.getElementById('editNuim').value !== '';
-            const formData = {
+            const isEdit = document.getElementById('pilotoNuimEdit').value !== '';
+            const pilotoData = {
                 nombre: document.getElementById('pilotoNombre').value,
                 email: document.getElementById('pilotoEmail').value,
                 nuim: document.getElementById('pilotoNUIM').value,
+                rango: document.getElementById('pilotoRango').value,
+                fecha_ingreso: document.getElementById('pilotoFechaIngreso').value,
                 rol: document.getElementById('pilotoRol').value,
-                estado: 'ACTIVO',
-                fecha_ingreso: new Date().toISOString().split('T')[0]
+                estado: document.getElementById('pilotoEstado').value,
+                fecha_nacimiento: document.getElementById('pilotoFechaNacimiento').value,
+                tipo_sangre: document.getElementById('pilotoTipoSangre').value,
+                telefono: document.getElementById('pilotoTelefono').value,
+                nacionalidad: document.getElementById('pilotoNacionalidad').value
             };
             
             if (isEdit) {
-                formData.nuim_original = document.getElementById('editNuim').value;
+                pilotoData.nuim_original = document.getElementById('pilotoNuimEdit').value;
             }
             
             try {
                 const action = isEdit ? 'updatePiloto' : 'addPiloto';
-                const params = new URLSearchParams(formData);
+                const params = new URLSearchParams();
+                for (const key in pilotoData) {
+                    if (pilotoData[key]) params.append(key, pilotoData[key]);
+                }
+                
                 const response = await fetch(`${API_URL}?action=${action}&${params}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    showMessage('modalMessage', data.message, 'success');
+                    showMessage('pilotoMessage', data.message, 'success');
                     setTimeout(() => {
-                        hideModal();
-                        loadPilotos();
-                    }, 1000);
+                        hideModal('pilotoModal');
+                        loadPilotos().then(displayPilotos);
+                    }, 2000);
                 } else {
-                    showMessage('modalMessage', data.error, 'error');
+                    showMessage('pilotoMessage', data.error, 'error');
                 }
             } catch (error) {
-                showMessage('modalMessage', 'Error de conexión', 'error');
+                showMessage('pilotoMessage', 'Error de conexión: ' + error.message, 'error');
             }
-        });
-
+        }
+        
         function showMessage(elementId, message, type) {
             const element = document.getElementById(elementId);
             element.textContent = message;
-            element.className = type;
+            element.className = type === 'error' ? 'error-message' : 'success-message';
         }
+        
+        // Funciones de vista (simplificadas)
+        function viewPiloto(nuim) {
+            const piloto = appData.pilotos.find(p => p.nuim === nuim);
+            if (piloto) {
+                alert(`Perfil de ${piloto.nombre}\nNUIM: ${piloto.nuim}\nRango: ${piloto.rango}\nEmail: ${piloto.correo}\nEstado: ${piloto.estado}`);
+            }
+        }
+        
+        function editPiloto(nuim) {
+            const piloto = appData.pilotos.find(p => p.nuim === nuim);
+            if (piloto) {
+                showPilotoModal('edit', piloto);
+            }
+        }
+        
+        function viewAeronave(callsign) {
+            const aeronave = appData.aeronaves.find(a => a.callsign === callsign);
+            if (aeronave) {
+                alert(`Aeronave: ${aeronave.callsign}\nModelo: ${aeronave.modelo}\nCertificada: ${aeronave.certificada}`);
+            }
+        }
+        
+        function viewLibroVuelo(idLibro) {
+            const libro = appData.librosVuelo.find(l => l.id_libro === idLibro);
+            if (libro) {
+                alert(`Libro de Vuelo: ${libro.id_libro}\nPiloto: ${libro.piloto}\nAeronave: ${libro.aeronave}\nTiempo: ${libro.tiempo_total} horas`);
+            }
+        }
+        
+        function viewSolicitud(idSolicitud) {
+            const solicitud = appData.solicitudes.find(s => s.id_solicitud === idSolicitud);
+            if (solicitud) {
+                alert(`Solicitud: ${solicitud.id_solicitud}\nPiloto: ${solicitud.piloto}\nAeronave: ${solicitud.aeronave}\nEstado: ${solicitud.estado}`);
+            }
+        }
+        
+        function viewRango(nombreRango) {
+            const rango = appData.rangos.find(r => r.nombre === nombreRango);
+            if (rango) {
+                alert(`Rango: ${rango.nombre}\nAbreviación: ${rango.abreviacion}\nEscalafón: ${rango.escalafon}`);
+            }
+        }
+        
+        // Hacer funciones globales
+        window.viewPiloto = viewPiloto;
+        window.editPiloto = editPiloto;
+        window.viewAeronave = viewAeronave;
+        window.viewLibroVuelo = viewLibroVuelo;
+        window.viewSolicitud = viewSolicitud;
+        window.viewRango = viewRango;
+        window.hideModal = hideModal;
+        
     </script>
 </body>
 </html>
